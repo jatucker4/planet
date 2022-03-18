@@ -29,28 +29,40 @@ Task = collections.namedtuple(
 
 def floor(config, params):
   action_repeat = params.get('action_repeat', 1)
-  max_length = 1000 // action_repeat
+  max_length = 200 // action_repeat
   state_components = ['reward']
-  env_ctor = control.wrappers.ActionRepeat(
-      control.FloorEnv(), action_repeat)
+  # env_ctor = control.wrappers.ActionRepeat(
+  #     control.FloorEnv(), action_repeat)
+  env_ctor = tools.bind(
+      _flexible_control_env, control.FloorEnv() ,action_repeat, max_length,
+      params)
   return Task('floor', env_ctor, max_length, state_components)
 
 def stanford(config, params):
   action_repeat = params.get('action_repeat', 1)
   max_length = 1000 // action_repeat
   state_components = ['reward']
-  env_ctor = control.wrappers.ActionRepeat(
-      control.StanfordEnvironment(), action_repeat)
+  env_ctor = tools.bind(
+      _flexible_control_env, control.StanfordEnvironment() ,action_repeat, max_length,
+      params)
   return Task('stanford', env_ctor, max_length, state_components)
+
+# def dummy(config, params):
+#   action_repeat = params.get('action_repeat', 1)
+#   max_length = 1000 // action_repeat
+#   state_components = ['reward']
+#   env_ctor = control.wrappers.ActionRepeat(
+#       control.DummyEnv(), action_repeat)
+#   return Task('dummy', env_ctor, max_length, state_components)
 
 def dummy(config, params):
   action_repeat = params.get('action_repeat', 1)
   max_length = 1000 // action_repeat
   state_components = ['reward']
-  env_ctor = control.wrappers.ActionRepeat(
-      control.DummyEnv(), action_repeat)
+  env_ctor = tools.bind(
+      _flexible_control_env, control.DummyEnv() ,action_repeat, max_length,
+      params)
   return Task('dummy', env_ctor, max_length, state_components)
-
 
 def cartpole_balance(config, params):
   action_repeat = params.get('action_repeat', 8)
@@ -161,6 +173,13 @@ def _dm_control_env(
   print(env)
   return env
 
+def _flexible_control_env(env,
+    action_repeat, max_length, domain, normalize=False,
+    camera_id=None):
+  env = control.wrappers.ActionRepeat(env, action_repeat)
+  env = control.wrappers.MaximumDuration(env, max_length)
+  print(env)
+  return env
 
 def _gym_env(action_repeat, min_length, max_length, name, obs_is_image=False):
   import gym

@@ -65,7 +65,7 @@ def plot_rgb(rgb_image_1mk3, filename):
     src = rgb_image_1mk3[0].astype(np.uint8)
     src = src[:,:,::-1]   ## CV2 works in BGR space instead of RGB!! So dumb!
     #percent by which the image is resized
-    scale_percent = (32./src.shape[0]) * 100
+    scale_percent = (64./src.shape[0]) * 100
 
     width = int(src.shape[1] * scale_percent / 100)
     height = int(src.shape[0] * scale_percent / 100)

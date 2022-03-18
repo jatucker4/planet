@@ -5,7 +5,7 @@ import os
 import pickle
 import random
 import gym
-
+from collections import OrderedDict
 from planet.control.abstract import AbstractEnvironment
 from planet.examples.examples import *
 #from planet.humanav.humanav_renderer import HumANavRenderer
@@ -162,12 +162,12 @@ class StanfordEnvironment(AbstractEnvironment):
 
         # Get the traversible
         try:
-            traversible = pickle.load(open("traversible.p", "rb"))
+            traversible = pickle.load(open("/home/jtucker/planet/planet/planet/traversible.p", "rb"))
             dx_m = 0.05
         except Exception:
             path = os.getcwd() + '/temp/'
             os.mkdir(path)
-            #_, _, traversible, dx_m = self.get_observation(path=path)
+            # _, _, traversible, dx_m = self.get_observation(path=path)
             pickle.dump(traversible, open("traversible.p", "wb"))
 
 
@@ -187,10 +187,10 @@ class StanfordEnvironment(AbstractEnvironment):
     def action_space(self):
         return gym.spaces.Box(low=np.array([-1.0]), high=np.array([1.0]), dtype=np.float32)
 
+    @property
     def observation_space(self):
-        # low = np.zeros([64, 64, 3], dtype=np.float32)
-        low = np.ones([32, 32, 3], dtype=np.float32)*(-10)
-        high = np.ones([32, 32, 3], dtype=np.float32)*10
+        low = np.ones([64, 64, 3], dtype=np.float32)*-10
+        high = np.ones([64, 64, 3], dtype=np.float32)*10
         spaces = {'image': gym.spaces.Box(low, high)}
         return gym.spaces.Dict(spaces)
     
@@ -220,8 +220,9 @@ class StanfordEnvironment(AbstractEnvironment):
             self.test_trap_y = [[trap1_y, trap1_y+trap_size], [trap2_y, trap2_y+trap_size]]
 
         #normalization_data = self.preprocess_data()
-        #obs, _, _, _ = self.get_observation()
-        obs = self.observation_space.sample()
+        #obs_nav, _, _, _ = self.get_observation()
+        obs = OrderedDict()        
+        obs['image'] = obs_nav
         return obs
 
     def initial_state(self):
@@ -455,9 +456,10 @@ class StanfordEnvironment(AbstractEnvironment):
 
         # Get the observation at the current state to provide PlaNet the expected output
         #normalization_data = self.preprocess_data()
-        #obs, _, _, _ = self.get_observation()
-        obs = self.observation_space.sample()
-
+        #obs_nav, _, _, _ = self.get_observation()
+        obs = OrderedDict()        
+        obs['image'] = obs_nav
+        
         if action_is_vector:
             new_theta = np.arctan2(action[1], action[0])
             if new_theta < 0:  # Arctan stuff
