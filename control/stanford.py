@@ -7,9 +7,10 @@ import random
 import gym
 
 from planet.control.abstract import AbstractEnvironment
-from planet.humanav.humanav_renderer import HumANavRenderer
-from planet.humanav.renderer_params import create_params as create_base_params
-from planet.humanav.renderer_params import get_surreal_texture_dir
+from planet.examples.examples import *
+#from planet.humanav.humanav_renderer import HumANavRenderer
+#from planet.humanav.renderer_params import create_params as create_base_params
+#from planet.humanav.renderer_params import get_surreal_texture_dir
 
 def check_path(path):
     if not os.path.exists(path):
@@ -17,88 +18,88 @@ def check_path(path):
         os.makedirs(path)
 
 
-def create_params():
-    p = create_base_params()
+# def create_params():
+#     p = create_base_params()
 
-	# Set any custom parameters
-    p.building_name = 'area5a' #'area3'
+# 	# Set any custom parameters
+#     p.building_name = 'area5a' #'area3'
 
-    p.camera_params.width = 1024
-    p.camera_params.height = 1024
-    p.camera_params.fov_vertical = 75.
-    p.camera_params.fov_horizontal = 75.
+#     p.camera_params.width = 1024
+#     p.camera_params.height = 1024
+#     p.camera_params.fov_vertical = 75.
+#     p.camera_params.fov_horizontal = 75.
 
-    # The camera is assumed to be mounted on a robot at fixed height
-    # and fixed pitch. See humanav/renderer_params.py for more information
+#     # The camera is assumed to be mounted on a robot at fixed height
+#     # and fixed pitch. See humanav/renderer_params.py for more information
 
-    # Tilt the camera 10 degree down from the horizontal axis
-    p.robot_params.camera_elevation_degree = -10
+#     # Tilt the camera 10 degree down from the horizontal axis
+#     p.robot_params.camera_elevation_degree = -10
 
-    p.camera_params.modalities = ['rgb', 'disparity']
-    return p
-
-
-def plot_rgb(rgb_image_1mk3, filename):
-    import cv2
-    # fig = plt.figure(figsize=(30, 10))
-
-    src = rgb_image_1mk3[0].astype(np.uint8)
-    src = src[:, :, ::-1]  ## CV2 works in BGR space instead of RGB!! So dumb!
-    # percent by which the image is resized
-    scale_percent = (32. / src.shape[0]) * 100
-
-    width = int(src.shape[1] * scale_percent / 100)
-    height = int(src.shape[0] * scale_percent / 100)
-
-    # dsize
-    dsize = (width, height)
-
-    # resize image
-    output = cv2.resize(src, dsize)
-
-    # Plot the RGB Image
-    # plt.imshow(output)
-    # plt.imshow(rgb_image_1mk3[0].astype(np.uint8))
-    # ax.set_xticks([])
-    # ax.set_yticks([])
-    # ax.set_title('RGB')
-
-    cv2.imwrite(filename, output)
-    # cv2.imwrite('original.png', src)
-
-    # fig.savefig(filename, bbox_inches='tight', pad_inches=0)
-
-def render_rgb_and_depth(r, camera_pos_13, dx_m, human_visible=False):
-    # Convert from real world units to grid world units
-    camera_grid_world_pos_12 = camera_pos_13[:, :2]/dx_m
-
-    # Render RGB and Depth Images. The shape of the resulting
-    # image is (1 (batch), m (width), k (height), c (number channels))
-    rgb_image_1mk3 = r._get_rgb_image(camera_grid_world_pos_12, camera_pos_13[:, 2:3], human_visible=False)
-
-    depth_image_1mk1, _, _ = r._get_depth_image(camera_grid_world_pos_12, camera_pos_13[:, 2:3], xy_resolution=.05, map_size=1500, pos_3=camera_pos_13[0, :3], human_visible=True)
-
-    return rgb_image_1mk3, depth_image_1mk1
+#     p.camera_params.modalities = ['rgb', 'disparity']
+#     return p
 
 
-def generate_observation(camera_pos_13, path):
-    p = create_params()
+# def plot_rgb(rgb_image_1mk3, filename):
+#     import cv2
+#     # fig = plt.figure(figsize=(30, 10))
 
-    r = HumANavRenderer.get_renderer(p)
-    dx_cm, traversible = r.get_config()
+#     src = rgb_image_1mk3[0].astype(np.uint8)
+#     src = src[:, :, ::-1]  ## CV2 works in BGR space instead of RGB!! So dumb!
+#     # percent by which the image is resized
+#     scale_percent = (32. / src.shape[0]) * 100
 
-    # Convert the grid spacing to units of meters. Should be 5cm for the S3DIS data
-    dx_m = dx_cm/100.
+#     width = int(src.shape[1] * scale_percent / 100)
+#     height = int(src.shape[0] * scale_percent / 100)
 
-    rgb_image_1mk3, depth_image_1mk1 = render_rgb_and_depth(r, camera_pos_13, dx_m, human_visible=False)
+#     # dsize
+#     dsize = (width, height)
 
-    camera_pos_str = '_' + str(camera_pos_13[0][0]) + '_' + str(camera_pos_13[0][1]) + '_' + str(camera_pos_13[0][2])
-    filename_rgb = 'rgb' + camera_pos_str + '.png'
+#     # resize image
+#     output = cv2.resize(src, dsize)
 
-    # Plot the rendered images
-    plot_rgb(rgb_image_1mk3, path + filename_rgb)
+#     # Plot the RGB Image
+#     # plt.imshow(output)
+#     # plt.imshow(rgb_image_1mk3[0].astype(np.uint8))
+#     # ax.set_xticks([])
+#     # ax.set_yticks([])
+#     # ax.set_title('RGB')
 
-    return path + filename_rgb, traversible, dx_m
+#     cv2.imwrite(filename, output)
+#     # cv2.imwrite('original.png', src)
+
+#     # fig.savefig(filename, bbox_inches='tight', pad_inches=0)
+
+# def render_rgb_and_depth(r, camera_pos_13, dx_m, human_visible=False):
+#     # Convert from real world units to grid world units
+#     camera_grid_world_pos_12 = camera_pos_13[:, :2]/dx_m
+
+#     # Render RGB and Depth Images. The shape of the resulting
+#     # image is (1 (batch), m (width), k (height), c (number channels))
+#     rgb_image_1mk3 = r._get_rgb_image(camera_grid_world_pos_12, camera_pos_13[:, 2:3], human_visible=False)
+
+#     depth_image_1mk1, _, _ = r._get_depth_image(camera_grid_world_pos_12, camera_pos_13[:, 2:3], xy_resolution=.05, map_size=1500, pos_3=camera_pos_13[0, :3], human_visible=True)
+
+#     return rgb_image_1mk3, depth_image_1mk1
+
+
+# def generate_observation(camera_pos_13, path):
+#     p = create_params()
+
+#     r = HumANavRenderer.get_renderer(p)
+#     dx_cm, traversible = r.get_config()
+
+#     # Convert the grid spacing to units of meters. Should be 5cm for the S3DIS data
+#     dx_m = dx_cm/100.
+
+#     rgb_image_1mk3, depth_image_1mk1 = render_rgb_and_depth(r, camera_pos_13, dx_m, human_visible=False)
+
+#     camera_pos_str = '_' + str(camera_pos_13[0][0]) + '_' + str(camera_pos_13[0][1]) + '_' + str(camera_pos_13[0][2])
+#     filename_rgb = 'rgb' + camera_pos_str + '.png'
+
+#     # Plot the rendered images
+#     plot_rgb(rgb_image_1mk3, path + filename_rgb)
+
+#     return path + filename_rgb, traversible, dx_m
 
 
 class Stanford_Environment_Params():
@@ -166,7 +167,7 @@ class StanfordEnvironment(AbstractEnvironment):
         except Exception:
             path = os.getcwd() + '/temp/'
             os.mkdir(path)
-            _, _, traversible, dx_m = self.get_observation(path=path)
+            #_, _, traversible, dx_m = self.get_observation(path=path)
             pickle.dump(traversible, open("traversible.p", "wb"))
 
 
@@ -218,8 +219,9 @@ class StanfordEnvironment(AbstractEnvironment):
             trap2_y = np.random.rand() * (self.dark_line - self.init_strip_y[1]) + self.init_strip_y[1]
             self.test_trap_y = [[trap1_y, trap1_y+trap_size], [trap2_y, trap2_y+trap_size]]
 
-        normalization_data = self.preprocess_data()
-        obs, _, _, _ = self.get_observation(normalization_data=normalization_data)
+        #normalization_data = self.preprocess_data()
+        #obs, _, _, _ = self.get_observation()
+        obs = self.observation_space.sample()
         return obs
 
     def initial_state(self):
@@ -362,14 +364,14 @@ class StanfordEnvironment(AbstractEnvironment):
         out = np.ascontiguousarray(out)
 
         if normalize:
-            rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
-            img_rslice = (out[:, :, 0] - rmean)/rstd
-            img_gslice = (out[:, :, 1] - gmean)/gstd
-            img_bslice = (out[:, :, 2] - bmean)/bstd
+            #rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
+            #img_rslice = (out[:, :, 0] - rmean)/rstd
+            #img_gslice = (out[:, :, 1] - gmean)/gstd
+            #img_bslice = (out[:, :, 2] - bmean)/bstd
 
-            out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
+            #out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
 
-            #out = (out - out.mean())/out.std()  # "Normalization" -- TODO
+            out = (out - out.mean())/out.std()  # "Normalization" -- TODO
 
         os.remove(img_path)
         os.rmdir(path)
@@ -452,8 +454,9 @@ class StanfordEnvironment(AbstractEnvironment):
         curr_state = self.state
 
         # Get the observation at the current state to provide PlaNet the expected output
-        normalization_data = self.preprocess_data()
-        obs, _, _, _ = self.get_observation(normalization_data=normalization_data)
+        #normalization_data = self.preprocess_data()
+        #obs, _, _, _ = self.get_observation()
+        obs = self.observation_space.sample()
 
         if action_is_vector:
             new_theta = np.arctan2(action[1], action[0])
