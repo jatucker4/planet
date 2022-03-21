@@ -7,7 +7,7 @@ import random
 import gym
 from collections import OrderedDict
 from planet.control.abstract import AbstractEnvironment
-from planet.examples.examples import *
+from planet.humanav_examples.examples import *
 #from planet.humanav.humanav_renderer import HumANavRenderer
 #from planet.humanav.renderer_params import create_params as create_base_params
 #from planet.humanav.renderer_params import get_surreal_texture_dir
