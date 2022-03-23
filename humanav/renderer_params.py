@@ -55,7 +55,7 @@ def create_params():
     return p
 
 def get_path_to_humanav():
-    return '/home/jtucker/humannav_data/LB_WayPtNav_Data-20211116T233151Z-002/LB_WayPtNav_Data'
+    return '/home/sampada/LB_WayPtNav_Data'
 
 def get_traversible_dir():
     return os.path.join(get_path_to_humanav(), 'stanford_building_parser_dataset/traversibles')

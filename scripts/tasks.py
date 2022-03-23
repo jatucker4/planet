@@ -43,9 +43,18 @@ def stanford(config, params):
   max_length = 1000 // action_repeat
   state_components = ['reward']
   env_ctor = tools.bind(
-      _flexible_control_env, control.StanfordEnvironment() ,action_repeat, max_length,
+      _flexible_control_env, control.StanfordEnvironment(), action_repeat, max_length,
       params)
   return Task('stanford', env_ctor, max_length, state_components)
+
+def intermediate_dummy(config, params):
+  action_repeat = params.get('action_repeat', 1)
+  max_length = 1000 // action_repeat
+  state_components = ['reward']
+  env_ctor = tools.bind(
+      _flexible_control_env, control.IntermediateDummyEnv(), action_repeat, max_length,
+      params)
+  return Task('intermediate_dummy', env_ctor, max_length, state_components)
 
 # def dummy(config, params):
 #   action_repeat = params.get('action_repeat', 1)
@@ -60,7 +69,7 @@ def dummy(config, params):
   max_length = 1000 // action_repeat
   state_components = ['reward']
   env_ctor = tools.bind(
-      _flexible_control_env, control.DummyEnv() ,action_repeat, max_length,
+      _flexible_control_env, control.DummyEnv(), action_repeat, max_length,
       params)
   return Task('dummy', env_ctor, max_length, state_components)
 

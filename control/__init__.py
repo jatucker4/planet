@@ -21,6 +21,7 @@ from .batch_env import BatchEnv
 from .dummy_env import DummyEnv
 from .floor_env import FloorEnv
 from .stanford import StanfordEnvironment
+from .intermediate_dummy_env import IntermediateDummyEnv
 from .in_graph_batch_env import InGraphBatchEnv
 from .mpc_agent import MPCAgent
 from .random_episodes import random_episodes

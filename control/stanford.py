@@ -5,6 +5,7 @@ import os
 import pickle
 import random
 import gym
+
 from collections import OrderedDict
 from planet.control.abstract import AbstractEnvironment
 from planet.humanav_examples.examples import *
@@ -14,7 +15,7 @@ from planet.humanav_examples.examples import *
 
 def check_path(path):
     if not os.path.exists(path):
-        print("[INFO] making folder %s" % path)
+        #print("[INFO] making folder %s" % path)
         os.makedirs(path)
 
 
@@ -162,14 +163,13 @@ class StanfordEnvironment(AbstractEnvironment):
 
         # Get the traversible
         try:
-            traversible = pickle.load(open("/home/jtucker/planet/planet/planet/traversible.p", "rb"))
+            traversible = pickle.load(open("traversible.p", "rb"))
             dx_m = 0.05
         except Exception:
             path = os.getcwd() + '/temp/'
             os.mkdir(path)
-            # _, _, traversible, dx_m = self.get_observation(path=path)
+            _, _, traversible, dx_m = self.get_observation(path=path)
             pickle.dump(traversible, open("traversible.p", "wb"))
-
 
         self.traversible = traversible
         self.dx = dx_m
@@ -188,15 +188,22 @@ class StanfordEnvironment(AbstractEnvironment):
         return gym.spaces.Box(low=np.array([-1.0]), high=np.array([1.0]), dtype=np.float32)
 
     @property
-    def observation_space(self):
-        low = np.ones([64, 64, 3], dtype=np.float32)*-10
-        high = np.ones([64, 64, 3], dtype=np.float32)*10
+    def observation_space(self):  ## TODO Include pixel wrapper and don't normalize
+        # low = np.ones([64, 64, 3], dtype=np.float32)*-10
+        # high = np.ones([64, 64, 3], dtype=np.float32)*10
+        low = np.zeros([64, 64, 3], dtype=np.float32)
+        high = np.ones([64, 64, 3], dtype=np.float32)
         spaces = {'image': gym.spaces.Box(low, high)}
         return gym.spaces.Dict(spaces)
     
     def set_test_trap(self, test_trap_is_random=False):
         self.test_trap = True
         self.test_trap_is_random = test_trap_is_random
+
+    # def reset(self):
+    #     self._step = 0
+    #     obs = self.observation_space.sample()
+    #     return obs
 
     def reset(self):
         self.done = False
@@ -219,10 +226,13 @@ class StanfordEnvironment(AbstractEnvironment):
             trap2_y = np.random.rand() * (self.dark_line - self.init_strip_y[1]) + self.init_strip_y[1]
             self.test_trap_y = [[trap1_y, trap1_y+trap_size], [trap2_y, trap2_y+trap_size]]
 
-        #normalization_data = self.preprocess_data()
-        #obs_nav, _, _, _ = self.get_observation()
+        normalization_data = self.preprocess_data()
+        obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
         obs = OrderedDict()        
         obs['image'] = obs_nav
+        
+        #obs = self.observation_space.sample()
+
         return obs
 
     def initial_state(self):
@@ -365,14 +375,14 @@ class StanfordEnvironment(AbstractEnvironment):
         out = np.ascontiguousarray(out)
 
         if normalize:
-            #rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
-            #img_rslice = (out[:, :, 0] - rmean)/rstd
-            #img_gslice = (out[:, :, 1] - gmean)/gstd
-            #img_bslice = (out[:, :, 2] - bmean)/bstd
+            rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
+            img_rslice = (out[:, :, 0] - rmean)/rstd
+            img_gslice = (out[:, :, 1] - gmean)/gstd
+            img_bslice = (out[:, :, 2] - bmean)/bstd
 
-            #out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
+            out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
 
-            out = (out - out.mean())/out.std()  # "Normalization" -- TODO
+            #out = (out - out.mean())/out.std()  # "Normalization" -- TODO
 
         os.remove(img_path)
         os.rmdir(path)
@@ -450,51 +460,63 @@ class StanfordEnvironment(AbstractEnvironment):
                 (state[1] >= self.target_y[0] and state[1] <= self.target_y[1])
         return goal
 
-    def step(self, action, action_is_vector=False):
-        self.done = False
-        curr_state = self.state
-
-        # Get the observation at the current state to provide PlaNet the expected output
-        #normalization_data = self.preprocess_data()
-        #obs_nav, _, _, _ = self.get_observation()
-        obs = OrderedDict()        
-        obs['image'] = obs_nav
-        
-        if action_is_vector:
-            new_theta = np.arctan2(action[1], action[0])
-            if new_theta < 0:  # Arctan stuff
-                new_theta += 2*np.pi
-            next_state = curr_state + action
-        else:
-            new_theta = action[0] * np.pi + np.pi
-            vector = np.array([np.cos(new_theta), np.sin(new_theta)]) * sep.velocity  # Go in the direction the new theta is
-            next_state = curr_state + vector
-    
-        cond_hit = self.detect_collision(next_state)
-
-        if self.in_goal(next_state):
-            self.state = next_state
-            self.orientation = new_theta
-            self.done = True
-        elif cond_hit == False:
-            self.state = next_state
-            self.orientation = new_theta
-        reward = sep.epi_reward * self.done
-
-        cond_false = self.in_trap(next_state)
-        reward -= sep.epi_reward * cond_false
-
+    def step(self, action):
+        obs = self.observation_space.sample()
+        # reward = self._random.uniform(0, 1)
+        reward = np.random.uniform(0, 1)
+        self._step += 1
+        done = self._step >= 1000
         info = {}
-        return obs, reward, self.done, info
+        return obs, reward, done, info
+
+    # def step(self, action, action_is_vector=False):
+    #     self.done = False
+    #     curr_state = self.state
+
+    #     # Get the observation at the current state to provide PlaNet the expected output
+    #     normalization_data = self.preprocess_data()
+    #     obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
+    #     obs = OrderedDict()        
+    #     obs['image'] = obs_nav
+
+    #     #obs = self.observation_space.sample()
+        
+    #     if action_is_vector:
+    #         new_theta = np.arctan2(action[1], action[0])
+    #         if new_theta < 0:  # Arctan stuff
+    #             new_theta += 2*np.pi
+    #         next_state = curr_state + action
+    #     else:
+    #         new_theta = action[0] * np.pi + np.pi
+    #         vector = np.array([np.cos(new_theta), np.sin(new_theta)]) * sep.velocity  # Go in the direction the new theta is
+    #         next_state = curr_state + vector
+    
+    #     cond_hit = self.detect_collision(next_state)
+
+    #     if self.in_goal(next_state):
+    #         self.state = next_state
+    #         self.orientation = new_theta
+    #         self.done = True
+    #     elif cond_hit == False:
+    #         self.state = next_state
+    #         self.orientation = new_theta
+    #     reward = sep.epi_reward * self.done
+
+    #     cond_false = self.in_trap(next_state)
+    #     reward -= sep.epi_reward * cond_false
+
+    #     info = {}
+    #     self._step += 1
+    #     return obs, reward, self.done, info
 
     def preprocess_data(self):
         # For normalizing the images - per channel mean and std
-        print("Preprocessing the data")
+        #print("Preprocessing the data")
 
         try:
             normalization_data = pickle.load(open("data_normalization.p", "rb"))
             rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
-            print("Done preprocessing")
+            #print("Done preprocessing")
             return rmean, gmean, bmean, rstd, gstd, bstd
         except Exception:
             rmean = 0
@@ -519,7 +541,7 @@ class StanfordEnvironment(AbstractEnvironment):
             normalization_data = [rmean, gmean, bmean, rstd, gstd, bstd]
             pickle.dump(normalization_data, open("data_normalization.p", "wb"))
 
-            print("Done preprocessing")
+            #print("Done preprocessing")
 
             return rmean, gmean, bmean, rstd, gstd, bstd
 
