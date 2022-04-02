@@ -19,90 +19,6 @@ def check_path(path):
         os.makedirs(path)
 
 
-# def create_params():
-#     p = create_base_params()
-
-# 	# Set any custom parameters
-#     p.building_name = 'area5a' #'area3'
-
-#     p.camera_params.width = 1024
-#     p.camera_params.height = 1024
-#     p.camera_params.fov_vertical = 75.
-#     p.camera_params.fov_horizontal = 75.
-
-#     # The camera is assumed to be mounted on a robot at fixed height
-#     # and fixed pitch. See humanav/renderer_params.py for more information
-
-#     # Tilt the camera 10 degree down from the horizontal axis
-#     p.robot_params.camera_elevation_degree = -10
-
-#     p.camera_params.modalities = ['rgb', 'disparity']
-#     return p
-
-
-# def plot_rgb(rgb_image_1mk3, filename):
-#     import cv2
-#     # fig = plt.figure(figsize=(30, 10))
-
-#     src = rgb_image_1mk3[0].astype(np.uint8)
-#     src = src[:, :, ::-1]  ## CV2 works in BGR space instead of RGB!! So dumb!
-#     # percent by which the image is resized
-#     scale_percent = (32. / src.shape[0]) * 100
-
-#     width = int(src.shape[1] * scale_percent / 100)
-#     height = int(src.shape[0] * scale_percent / 100)
-
-#     # dsize
-#     dsize = (width, height)
-
-#     # resize image
-#     output = cv2.resize(src, dsize)
-
-#     # Plot the RGB Image
-#     # plt.imshow(output)
-#     # plt.imshow(rgb_image_1mk3[0].astype(np.uint8))
-#     # ax.set_xticks([])
-#     # ax.set_yticks([])
-#     # ax.set_title('RGB')
-
-#     cv2.imwrite(filename, output)
-#     # cv2.imwrite('original.png', src)
-
-#     # fig.savefig(filename, bbox_inches='tight', pad_inches=0)
-
-# def render_rgb_and_depth(r, camera_pos_13, dx_m, human_visible=False):
-#     # Convert from real world units to grid world units
-#     camera_grid_world_pos_12 = camera_pos_13[:, :2]/dx_m
-
-#     # Render RGB and Depth Images. The shape of the resulting
-#     # image is (1 (batch), m (width), k (height), c (number channels))
-#     rgb_image_1mk3 = r._get_rgb_image(camera_grid_world_pos_12, camera_pos_13[:, 2:3], human_visible=False)
-
-#     depth_image_1mk1, _, _ = r._get_depth_image(camera_grid_world_pos_12, camera_pos_13[:, 2:3], xy_resolution=.05, map_size=1500, pos_3=camera_pos_13[0, :3], human_visible=True)
-
-#     return rgb_image_1mk3, depth_image_1mk1
-
-
-# def generate_observation(camera_pos_13, path):
-#     p = create_params()
-
-#     r = HumANavRenderer.get_renderer(p)
-#     dx_cm, traversible = r.get_config()
-
-#     # Convert the grid spacing to units of meters. Should be 5cm for the S3DIS data
-#     dx_m = dx_cm/100.
-
-#     rgb_image_1mk3, depth_image_1mk1 = render_rgb_and_depth(r, camera_pos_13, dx_m, human_visible=False)
-
-#     camera_pos_str = '_' + str(camera_pos_13[0][0]) + '_' + str(camera_pos_13[0][1]) + '_' + str(camera_pos_13[0][2])
-#     filename_rgb = 'rgb' + camera_pos_str + '.png'
-
-#     # Plot the rendered images
-#     plot_rgb(rgb_image_1mk3, path + filename_rgb)
-
-#     return path + filename_rgb, traversible, dx_m
-
-
 class Stanford_Environment_Params():
     def __init__(self):
         self.epi_reward = 100 #1000 #100
@@ -460,54 +376,56 @@ class StanfordEnvironment(AbstractEnvironment):
                 (state[1] >= self.target_y[0] and state[1] <= self.target_y[1])
         return goal
 
-    def step(self, action):
-        obs = self.observation_space.sample()
-        # reward = self._random.uniform(0, 1)
-        reward = np.random.uniform(0, 1)
-        self._step += 1
-        done = self._step >= 1000
-        info = {}
-        return obs, reward, done, info
-
-    # def step(self, action, action_is_vector=False):
-    #     self.done = False
-    #     curr_state = self.state
-
-    #     # Get the observation at the current state to provide PlaNet the expected output
-    #     normalization_data = self.preprocess_data()
-    #     obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
-    #     obs = OrderedDict()        
-    #     obs['image'] = obs_nav
-
-    #     #obs = self.observation_space.sample()
-        
-    #     if action_is_vector:
-    #         new_theta = np.arctan2(action[1], action[0])
-    #         if new_theta < 0:  # Arctan stuff
-    #             new_theta += 2*np.pi
-    #         next_state = curr_state + action
-    #     else:
-    #         new_theta = action[0] * np.pi + np.pi
-    #         vector = np.array([np.cos(new_theta), np.sin(new_theta)]) * sep.velocity  # Go in the direction the new theta is
-    #         next_state = curr_state + vector
-    
-    #     cond_hit = self.detect_collision(next_state)
-
-    #     if self.in_goal(next_state):
-    #         self.state = next_state
-    #         self.orientation = new_theta
-    #         self.done = True
-    #     elif cond_hit == False:
-    #         self.state = next_state
-    #         self.orientation = new_theta
-    #     reward = sep.epi_reward * self.done
-
-    #     cond_false = self.in_trap(next_state)
-    #     reward -= sep.epi_reward * cond_false
-
-    #     info = {}
+    # def step(self, action):
+    #     obs = self.observation_space.sample()
+    #     # reward = self._random.uniform(0, 1)
+    #     reward = np.random.uniform(0, 1)
     #     self._step += 1
-    #     return obs, reward, self.done, info
+    #     #done = self._step >= 1000
+    #     done = self._step >= 10
+    #     #done = self._step >= 200
+    #     info = {}
+    #     return obs, reward, done, info
+
+    def step(self, action, action_is_vector=False):
+        self.done = False
+        curr_state = self.state
+
+        # Get the observation at the current state to provide PlaNet the expected output
+        normalization_data = self.preprocess_data()
+        obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
+        obs = OrderedDict()        
+        obs['image'] = obs_nav
+
+        #obs = self.observation_space.sample()
+        
+        if action_is_vector:
+            new_theta = np.arctan2(action[1], action[0])
+            if new_theta < 0:  # Arctan stuff
+                new_theta += 2*np.pi
+            next_state = curr_state + action
+        else:
+            new_theta = action[0] * np.pi + np.pi
+            vector = np.array([np.cos(new_theta), np.sin(new_theta)]) * sep.velocity  # Go in the direction the new theta is
+            next_state = curr_state + vector
+    
+        cond_hit = self.detect_collision(next_state)
+
+        if self.in_goal(next_state):
+            self.state = next_state
+            self.orientation = new_theta
+            self.done = True
+        elif cond_hit == False:
+            self.state = next_state
+            self.orientation = new_theta
+        reward = sep.epi_reward * self.done
+
+        cond_false = self.in_trap(next_state)
+        reward -= sep.epi_reward * cond_false
+
+        info = {}
+        self._step += 1
+        return obs, reward, self.done, info
 
     def preprocess_data(self):
         # For normalizing the images - per channel mean and std

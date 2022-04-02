@@ -40,7 +40,8 @@ def floor(config, params):
 
 def stanford(config, params):
   action_repeat = params.get('action_repeat', 1)
-  max_length = 1000 // action_repeat
+  #max_length = 1000 // action_repeat
+  max_length = 50 // action_repeat
   state_components = ['reward']
   env_ctor = tools.bind(
       _flexible_control_env, control.StanfordEnvironment(), action_repeat, max_length,
@@ -66,7 +67,8 @@ def intermediate_dummy(config, params):
 
 def dummy(config, params):
   action_repeat = params.get('action_repeat', 1)
-  max_length = 1000 // action_repeat
+  #max_length = 1000 // action_repeat
+  max_length = 50 // action_repeat
   state_components = ['reward']
   env_ctor = tools.bind(
       _flexible_control_env, control.DummyEnv(), action_repeat, max_length,

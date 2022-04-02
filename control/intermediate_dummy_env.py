@@ -159,48 +159,48 @@ class IntermediateDummyEnv(object):
 
         return obs
 
-    def step(self, action):
-        obs = self.observation_space.sample()
-        # reward = self._random.uniform(0, 1)
-        reward = np.random.uniform(0, 1)
-        self._step += 1
-        done = self._step >= 1000
-        info = {}
-        return obs, reward, done, info
-  
-    # def step(self, action, action_is_vector=False):  ## TODO Add time horizon!
-    #     self.done = False
-    #     curr_state = self.state
-
+    # def step(self, action):
     #     obs = self.observation_space.sample()
-
-    #     if action_is_vector:
-    #         new_theta = np.arctan2(action[1], action[0])
-    #         if new_theta < 0:  # Arctan stuff
-    #             new_theta += 2*np.pi
-    #         next_state = curr_state + action
-    #     else:
-    #         new_theta = action[0] * np.pi + np.pi
-    #         vector = np.array([np.cos(new_theta), np.sin(new_theta)]) * sep.velocity  # Go in the direction the new theta is
-    #         next_state = curr_state + vector
-
-    #     cond_hit = self.detect_collision(next_state)
-
-    #     if self.in_goal(next_state):
-    #         self.state = next_state
-    #         self.orientation = new_theta
-    #         self.done = True
-    #     elif cond_hit == False:
-    #         self.state = next_state
-    #         self.orientation = new_theta
-    #     reward = sep.epi_reward * self.done
-
-    #     cond_false = self.in_trap(next_state)
-    #     reward -= sep.epi_reward * cond_false
-
-    #     info = {}
+    #     # reward = self._random.uniform(0, 1)
+    #     reward = np.random.uniform(0, 1)
     #     self._step += 1
-    #     return obs, reward, self.done, info
+    #     done = self._step >= 1000
+    #     info = {}
+    #     return obs, reward, done, info
+  
+    def step(self, action, action_is_vector=False):  ## TODO Add time horizon!
+        self.done = False
+        curr_state = self.state
+
+        obs = self.observation_space.sample()
+
+        if action_is_vector:
+            new_theta = np.arctan2(action[1], action[0])
+            if new_theta < 0:  # Arctan stuff
+                new_theta += 2*np.pi
+            next_state = curr_state + action
+        else:
+            new_theta = action[0] * np.pi + np.pi
+            vector = np.array([np.cos(new_theta), np.sin(new_theta)]) * sep.velocity  # Go in the direction the new theta is
+            next_state = curr_state + vector
+
+        cond_hit = self.detect_collision(next_state)
+
+        if self.in_goal(next_state):
+            self.state = next_state
+            self.orientation = new_theta
+            self.done = True
+        elif cond_hit == False:
+            self.state = next_state
+            self.orientation = new_theta
+        reward = sep.epi_reward * self.done
+
+        cond_false = self.in_trap(next_state)
+        reward -= sep.epi_reward * cond_false
+
+        info = {}
+        self._step += 1
+        return obs, reward, self.done, info
 
     def detect_collision(self, state):
         # Returns true if you collided

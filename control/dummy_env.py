@@ -48,6 +48,7 @@ class DummyEnv(object):
     obs = self.observation_space.sample()
     reward = self._random.uniform(0, 1)
     self._step += 1
-    done = self._step >= 1000
+    #done = self._step >= 1000
+    done = self._step >= 50
     info = {}
     return obs, reward, done, info
