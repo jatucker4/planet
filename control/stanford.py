@@ -388,7 +388,9 @@ class StanfordEnvironment(AbstractEnvironment):
     #     return obs, reward, done, info
 
     def step(self, action, action_is_vector=False):
-        self.done = False
+        episode_length = 50
+
+        #self.done = False
         curr_state = self.state
 
         # Get the observation at the current state to provide PlaNet the expected output
@@ -414,14 +416,17 @@ class StanfordEnvironment(AbstractEnvironment):
         if self.in_goal(next_state):
             self.state = next_state
             self.orientation = new_theta
-            self.done = True
+            #self.done = True
         elif cond_hit == False:
             self.state = next_state
             self.orientation = new_theta
-        reward = sep.epi_reward * self.done
+        #reward = sep.epi_reward * self.done
+        reward = sep.epi_reward * self.in_goal(next_state)
 
         cond_false = self.in_trap(next_state)
         reward -= sep.epi_reward * cond_false
+
+        self.done = self._step >= episode_length
 
         info = {}
         self._step += 1

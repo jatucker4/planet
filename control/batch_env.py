@@ -37,7 +37,7 @@ class BatchEnv(object):
       ValueError: Environments have different observation or action spaces.
     """
     self._envs = envs
-    print("\n\nI got here, here are the envs!", self._envs, blocking, "\n\n")
+    print("\nI got here, here are the envs!", self._envs, blocking, "\n")
     self._blocking = blocking
     observ_space = self._envs[0].observation_space
     if not all(env.observation_space == observ_space for env in self._envs):
@@ -86,7 +86,7 @@ class BatchEnv(object):
           env.step(action)
           for env, action in zip(self._envs, actions)]
     else:
-      print("\n\nGoing to enter env.step now\n\n")
+      print("\nGoing to enter env.step now\n")
       transitions = [
           env.step(action, blocking=False)
           for env, action in zip(self._envs, actions)]
@@ -112,7 +112,7 @@ class BatchEnv(object):
     if self._blocking:
       observs = [self._envs[index].reset() for index in indices]
     else:
-      print("\n\nGoing to enter env.reset now\n\n")
+      print("\nGoing to enter env.reset now\n")
       observs = [self._envs[index].reset(blocking=False) for index in indices]
       observs = [observ() for observ in observs]
     observ = np.stack(observs)

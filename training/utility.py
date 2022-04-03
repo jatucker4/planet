@@ -183,6 +183,7 @@ def train(model_fn, datasets, logdir, config):
             checkpoint_every=config.test_checkpoint_every)
     for saver in config.savers:
       trainer.add_saver(**saver)
+    print("\nI'M INSIDE TRAIN FN\n")
     for score in trainer.iterate(config.max_steps):
       yield score
   finally:

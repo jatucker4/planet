@@ -26,6 +26,8 @@ from planet.training import utility
 
 
 def define_model(data, trainer, config):
+  print("\nI'M INSIDE DEFINE MODEL\n")
+  
   tf.logging.info('Build TensorFlow compute graph.')
   dependencies = []
   cleanups = []

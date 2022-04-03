@@ -173,6 +173,7 @@ class Trainer(object):
     Yields:
       Reported mean scores.
     """
+    print("\nINSIDE ITERATE\n")
     sess = sess or self._create_session()
     with sess:
       self._initialize_variables(
@@ -180,10 +181,13 @@ class Trainer(object):
       sess.graph.finalize()
       while True:
         global_step = sess.run(self._global_step)
+        print("\nGLOBAL STEP", global_step, "\n")
         if max_step and global_step >= max_step:
           break
         phase, epoch, steps_in = self._find_current_phase(global_step)
+        print("\nPHASE, EPOCH, STEPS_IN", phase, epoch, steps_in, "\n")
         phase_step = epoch * phase.steps + steps_in
+        print("\nPHASE_STEP", phase_step, "\n")
         if steps_in % phase.steps < phase.batch_size:
           message = '\n' + ('-' * 50) + '\n'
           message += 'Epoch {} phase {} (phase step {}, global step {}).'
@@ -197,13 +201,16 @@ class Trainer(object):
             phase_step, phase.batch_size, phase.log_every)
         phase.feed[self._report] = self._is_every_steps(
             phase_step, phase.batch_size, phase.report_every)
+        print("\nTHIS IS THE SPOT\n")
         summary, mean_score, global_step = sess.run(phase.op, phase.feed)
+        print("SUMMARY, MEAN SCORE, GLOBAL_STEP", summary, mean_score, global_step, "\n")
         if self._is_every_steps(
             phase_step, phase.batch_size, phase.checkpoint_every):
           for saver in self._savers:
             self._store_checkpoint(sess, saver, global_step)
         if self._is_every_steps(
             phase_step, phase.batch_size, phase.report_every):
+          print("\nYIELDING MEAN SCORE\n")
           tf.logging.info('Score {}.'.format(mean_score))
           yield mean_score
         if summary and phase.writer:
