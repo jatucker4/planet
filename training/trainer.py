@@ -300,6 +300,7 @@ class Trainer(object):
       Session.
     """
     config = tf.ConfigProto()
+    config.gpu_options.visible_device_list = "1"
     config.gpu_options.allow_growth = True
     try:
       return tf.Session('local', config=config)

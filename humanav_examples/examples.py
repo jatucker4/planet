@@ -138,11 +138,18 @@ def render_rgb_and_depth(r, camera_pos_13, dx_m, human_visible=False):
     # Convert from real world units to grid world units
     camera_grid_world_pos_12 = camera_pos_13[:, :2]/dx_m
 
+    print("In render rgb and depth: segfault after here")
+    print("Info:", camera_grid_world_pos_12, camera_pos_13)
+
     # Render RGB and Depth Images. The shape of the resulting
     # image is (1 (batch), m (width), k (height), c (number channels))
     rgb_image_1mk3 = r._get_rgb_image(camera_grid_world_pos_12, camera_pos_13[:, 2:3], human_visible=False)
 
+    print("In render rgb and depth: segfault before here")
+
     depth_image_1mk1, _, _ = r._get_depth_image(camera_grid_world_pos_12, camera_pos_13[:, 2:3], xy_resolution=.05, map_size=1500, pos_3=camera_pos_13[0, :3], human_visible=True)
+
+    print("In render rgb and depth: segfault maybe before here")
 
     return rgb_image_1mk3, depth_image_1mk1
 
@@ -241,8 +248,11 @@ def generate_one_data(camera_pos_13, path):
 def generate_observation(camera_pos_13, path):
     p = create_params()
 
+    print("In humanav, segfault is after here")
     r = HumANavRenderer.get_renderer(p)
+    print("In humanav, segfault is before here")
     dx_cm, traversible = r.get_config()
+    print("In humanav, segfault is maybe before here")
 
     # Convert the grid spacing to units of meters. Should be 5cm for the S3DIS data
     dx_m = dx_cm/100.

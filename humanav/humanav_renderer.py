@@ -158,7 +158,7 @@ class HumANavRenderer():
             self.building.move_human_to_position_with_speed(self.d, pos_3, speed, self.human_gender,
                                                             self.human_texture, self.body_shape, mesh_rng)
             self.human_traversible = self.building.map._human_traversible
-
+  
     def _get_rgb_image(self, starts_n2, thetas_n1, human_visible):
         """
         Render rgb image(s) from the x, y, theta

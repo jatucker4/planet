@@ -177,7 +177,7 @@ class StanfordEnvironment(AbstractEnvironment):
     #     obs = self.observation_space.sample()
     #     return obs
 
-    def reset(self):
+    def reset(self, random_obs=False):
         #self.done = False
         self.reached_goal = False
         self._step = 0
@@ -199,12 +199,15 @@ class StanfordEnvironment(AbstractEnvironment):
             trap2_y = np.random.rand() * (self.dark_line - self.init_strip_y[1]) + self.init_strip_y[1]
             self.test_trap_y = [[trap1_y, trap1_y+trap_size], [trap2_y, trap2_y+trap_size]]
 
-        normalization_data = self.preprocess_data()
-        obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
-        obs = OrderedDict()        
-        obs['image'] = obs_nav
-        
-        #obs = self.observation_space.sample()
+        if random_obs:
+            obs = self.observation_space.sample()
+        else:
+            normalization_data = self.preprocess_data()
+            print("Segfault is after this")
+            obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
+            print("Segfault is before this")
+            obs = OrderedDict()        
+            obs['image'] = obs_nav
 
         return obs
     
@@ -219,19 +222,20 @@ class StanfordEnvironment(AbstractEnvironment):
     #     info = {}
     #     return obs, reward, done, info
 
-    def step(self, action, action_is_vector=False):
+    def step(self, action, random_obs=False, action_is_vector=False):
         episode_length = 50
 
         #self.done = False
         curr_state = self.state
 
         # Get the observation at the current state to provide PlaNet the expected output
-        normalization_data = self.preprocess_data()
-        obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
-        obs = OrderedDict()        
-        obs['image'] = obs_nav
-
-        #obs = self.observation_space.sample()
+        if random_obs:
+            obs = self.observation_space.sample()
+        else:
+            normalization_data = self.preprocess_data()
+            obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
+            obs = OrderedDict()        
+            obs['image'] = obs_nav
 
         self._step += 1
         
@@ -315,6 +319,7 @@ class StanfordEnvironment(AbstractEnvironment):
     def get_observation(self, state=None, normalize=True, normalization_data=None, occlusion=False):
         if state == None:
             state_temp = self.state
+            print("SELF.STATE", self.state)
             state = self.state + self.true_env_corner
             state_arr = np.array([[state[0], state[1], self.orientation]])
         else:
@@ -326,7 +331,10 @@ class StanfordEnvironment(AbstractEnvironment):
         #os.mkdir(path)
         check_path(path)
 
+        print("In get_observation: segfault is after here")
+        print("STATE ARR", state_arr)
         img_path, traversible, dx_m = generate_observation(state_arr, path)
+        print("In get_observation: segfault is before here")
         image = cv2.imread(img_path, cv2.IMREAD_COLOR)
         #image = np.random.randint(255, size=(64, 64, 3))
         
