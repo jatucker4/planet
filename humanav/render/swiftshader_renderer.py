@@ -579,14 +579,18 @@ class SwiftshaderRenderer():
     view_matrix = np.reshape(view_matrix, (-1))
     
     if self.egl_program['rgb'] is not None:
-      glUseProgram(self.egl_program['rgb'])
+      print("In renderer: position camera: segfault after here")
+      glUseProgram(self.egl_program['rgb'])  
+      print("In renderer: position camera: segfault before here")
       view_matrix_o = glGetUniformLocation(self.egl_program['rgb'], 'uViewMatrix')
       glUniformMatrix4fv(view_matrix_o, 1, GL_FALSE, view_matrix)
-
+      
     if self.egl_program['disparity'] is not None:
+      #print("In renderer: position camera: segfault after here") 
       glUseProgram(self.egl_program['disparity'])
       view_matrix_o = glGetUniformLocation(self.egl_program['disparity'], 'uViewMatrix')
       glUniformMatrix4fv(view_matrix_o, 1, GL_FALSE, view_matrix)
+      #print("In renderer: position camera: segfault before here")
 
     self.modelview_matrix = view_matrix.astype(np.double)
     return None, None #camera_xyz, q

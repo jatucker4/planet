@@ -161,7 +161,7 @@ class HumANavRenderer():
   
     def _get_rgb_image(self, starts_n2, thetas_n1, human_visible):
         """
-        Render rgb image(s) from the x, y, theta
+        Render rgb image(s) from the x, y, theta 
         location in starts and thetas.
         """
         if self.p.load_meshes:

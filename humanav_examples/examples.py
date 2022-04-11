@@ -135,7 +135,7 @@ def plot_images(rgb_image_1mk3, depth_image_1mk1, traversible, dx_m,
 
 
 def render_rgb_and_depth(r, camera_pos_13, dx_m, human_visible=False):
-    # Convert from real world units to grid world units
+    # Convert from real world units to grid world units 
     camera_grid_world_pos_12 = camera_pos_13[:, :2]/dx_m
 
     print("In render rgb and depth: segfault after here")
