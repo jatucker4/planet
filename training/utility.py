@@ -167,13 +167,13 @@ def train(model_fn, datasets, logdir, config):
       score, summary, cleanups = model_fn(data, trainer, config)
       message = 'Graph contains {} trainable variables.'
       tf.logging.info(message.format(tools.count_weights()))
-      if config.train_steps:
-        trainer.add_phase(
-            'train', config.train_steps, score, summary,
-            batch_size=config.batch_shape[0],
-            report_every=None,
-            log_every=config.train_log_every,
-            checkpoint_every=config.train_checkpoint_every)
+      # if config.train_steps:
+      #   trainer.add_phase(
+      #       'train', config.train_steps, score, summary,
+      #       batch_size=config.batch_shape[0],
+      #       report_every=None,
+      #       log_every=config.train_log_every,
+      #       checkpoint_every=config.train_checkpoint_every)
       if config.test_steps:
         trainer.add_phase(
             'test', config.test_steps, score, summary,

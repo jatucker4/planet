@@ -201,7 +201,6 @@ class Trainer(object):
             phase_step, phase.batch_size, phase.log_every)
         phase.feed[self._report] = self._is_every_steps(
             phase_step, phase.batch_size, phase.report_every)
-        print("\nTHIS IS THE SPOT\n")
         summary, mean_score, global_step = sess.run(phase.op, phase.feed)
         print("SUMMARY, MEAN SCORE, GLOBAL_STEP", summary, mean_score, global_step, "\n")
         if self._is_every_steps(
@@ -210,7 +209,6 @@ class Trainer(object):
             self._store_checkpoint(sess, saver, global_step)
         if self._is_every_steps(
             phase_step, phase.batch_size, phase.report_every):
-          print("\nYIELDING MEAN SCORE\n")
           tf.logging.info('Score {}.'.format(mean_score))
           yield mean_score
         if summary and phase.writer:
@@ -299,7 +297,9 @@ class Trainer(object):
     Returns:
       Session.
     """
-    config = tf.ConfigProto()
+    #config = tf.ConfigProto()
+    config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
+    #print("\nCONFIG DEVICE COUNT", config.device_count)
     config.gpu_options.visible_device_list = "1"
     config.gpu_options.allow_growth = True
     try:

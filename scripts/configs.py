@@ -229,7 +229,8 @@ def _training_schedule(config, params):
 
 
 def _initial_collection(config, params):
-  num_seed_episodes = params.get('num_seed_episodes', 5)
+  #num_seed_episodes = params.get('num_seed_episodes', 5)
+  num_seed_episodes = params.get('num_seed_episodes', 1)
   sims = tools.AttrDict(_unlocked=True)
   for task in config.tasks:
     sims['train-' + task.name] = tools.AttrDict(
