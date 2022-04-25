@@ -5,7 +5,7 @@ import sys
 if sys.version_info[0] == 2:
     from . import map_utils as mu
 else:
-    from planet.humanav import map_utils as mu #py3
+    from humanav import map_utils as mu #py3
 
 make_map = mu.make_map
 resize_maps = mu.resize_maps
@@ -250,13 +250,11 @@ class Building():
       camera_xyz = np.zeros((1, 3))
       camera_xyz[...] = [nxy[0, 0], nxy[0, 1], self.robot.sensor_height]
       camera_xyz = camera_xyz / 100.
-      lookat_xyz = np.array([-r * np.sin(lookat_theta), 
-                             -r * np.cos(lookat_theta), elevation_z]) 
+      lookat_xyz = np.array([-r * np.sin(lookat_theta),
+                             -r * np.cos(lookat_theta), elevation_z])
       lookat_xyz = lookat_xyz + camera_xyz[0, :]
-      print("In render_nodes: segfault after here?")
       self.r_obj.position_camera(camera_xyz[0, :].tolist(), lookat_xyz.tolist(), 
         [0.0, 0.0, 1.0])
-      print("In render_nodes: segfault before here?")
       img = self.r_obj.render(modality, take_screenshot=True, output_type=0)
       img = [x for x in img if x is not None]
       img = np.concatenate(img, axis=2).astype(np.float32)
@@ -266,4 +264,3 @@ class Building():
 
     self.set_building_visibility(False)
     return imgs
- 

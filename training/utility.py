@@ -88,6 +88,8 @@ def load_config(logdir):
     Configuration object.
   """
   config_path = logdir and os.path.join(logdir, 'config.yaml')
+  print("CONFIG PATH", logdir, os.path.join(logdir, 'config.yaml'))
+  print("CONFIG PATH", tf.gfile.Exists(config_path))
   if not config_path or not tf.gfile.Exists(config_path):
     message = (
         'Cannot resume an existing run since the logging directory does not '
@@ -154,10 +156,12 @@ def train(model_fn, datasets, logdir, config):
     raise KeyError('You must specify a configuration.')
   logdir = logdir and os.path.expanduser(logdir)
   try:
+    print("\n\n LOGDIR", logdir, "\n\n")
     config = load_config(logdir)
   except RuntimeError:
     print('Failed to load existing config.')
   except IOError:
+    print("\n\n SAVE CONFIG \n\n")
     config = save_config(config, logdir)
   trainer = trainer_.Trainer(logdir, config=config)
   cleanups = []

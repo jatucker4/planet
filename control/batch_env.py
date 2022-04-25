@@ -18,6 +18,9 @@ from __future__ import print_function
 
 import numpy as np
 
+#from examples.examples import *  # generate_observation
+from planet.humanav_examples.examples import *
+
 
 class BatchEnv(object):
   """Combine multiple environments to step them in batch."""
@@ -113,6 +116,7 @@ class BatchEnv(object):
       observs = [self._envs[index].reset() for index in indices]
     else:
       print("\nGoing to enter env.reset now\n")
+      print(self._envs)
       observs = [self._envs[index].reset(blocking=False) for index in indices]
       observs = [observ() for observ in observs]
     observ = np.stack(observs)

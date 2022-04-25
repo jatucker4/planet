@@ -25,6 +25,8 @@ import random
 import gym
 from collections import OrderedDict
 from planet.control.abstract import AbstractEnvironment
+
+#from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
 
 

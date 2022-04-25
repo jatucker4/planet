@@ -1,7 +1,7 @@
-from planet.humanav.render import swiftshader_renderer as sr
-from planet.humanav import sbpd, map_utils as mu
-from planet.humanav import depth_utils as du
-from planet.humanav import utils
+from humanav.render import swiftshader_renderer as sr
+from humanav import sbpd, map_utils as mu
+from humanav import depth_utils as du
+from humanav import utils
 import numpy as np
 import sys
 import os
@@ -23,6 +23,7 @@ class HumANavRenderer():
         if self.p.load_meshes:
             self.d = sbpd.get_dataset(self.p.dataset_name, 'all', data_dir=self.p.sbpd_data_dir, surreal_params=self.p.surreal)
             self.building = self.d.load_data(self.p.building_name, self.p.robot_params, self.p.flip)
+            print("Done making building")
             self.human_loaded = False
 
             # Instantiating a camera/ shader object is only needed
@@ -36,7 +37,28 @@ class HumANavRenderer():
 
                 r_obj = sr.get_r_obj(self.p.camera_params)
                 self.building.set_r_obj(r_obj)
+                import time
+                print("########### CHECKING MEMORY!! ###########")
+                t0 = time.time()
+                t1 = time.time()
+                while t1 - t0 < 10:
+                    t1 = time.time()
                 self.building.load_building_into_scene()
+                t0 = time.time()
+                t1 = time.time()
+                while t1 - t0 < 10:
+                    t1 = time.time()
+                print("########### DONE CHECKING MEMORY!! ###########")
+                # t0 = time.time()
+                # t1 = time.time()
+                # while t1 - t0 < 10:
+                #     t1 = time.time()
+                # self.building.r_obj.clear_scene()
+                # t0 = time.time()
+                # t1 = time.time()
+                # while t1 - t0 < 10:
+                #     t1 = time.time()
+                # print("########### DONE CHECKING MEMORY AGAIN!! ###########")
             elif 'occupancy_grid' in self.p.camera_params.modalities:
                 # MP Env only allows for square top views to be generated currently
                 assert(self.p.camera_params.width == self.p.camera_params.height)
@@ -158,10 +180,10 @@ class HumANavRenderer():
             self.building.move_human_to_position_with_speed(self.d, pos_3, speed, self.human_gender,
                                                             self.human_texture, self.body_shape, mesh_rng)
             self.human_traversible = self.building.map._human_traversible
-  
+
     def _get_rgb_image(self, starts_n2, thetas_n1, human_visible):
         """
-        Render rgb image(s) from the x, y, theta 
+        Render rgb image(s) from the x, y, theta
         location in starts and thetas.
         """
         if self.p.load_meshes:

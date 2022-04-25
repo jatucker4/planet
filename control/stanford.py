@@ -8,6 +8,8 @@ import gym
 
 from collections import OrderedDict
 from planet.control.abstract import AbstractEnvironment
+
+#from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
 
 
@@ -50,6 +52,11 @@ sep = Stanford_Environment_Params()
 
 class StanfordEnvironment(AbstractEnvironment):
     def __init__(self, disc_thetas=False):
+        print("\n\n\n CREATING STANFORD ENVIRONMENT \n\n\n")
+
+        #p = create_params()
+        #self.renderer = HumANavRenderer.get_renderer(p)
+
         #self.done = False
         self._step = None
         self.reached_goal = False
@@ -203,9 +210,9 @@ class StanfordEnvironment(AbstractEnvironment):
             obs = self.observation_space.sample()
         else:
             normalization_data = self.preprocess_data()
-            print("Segfault is after this")
+            #print("Segfault is after this")
             obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
-            print("Segfault is before this")
+            #print("Segfault is before this")
             obs = OrderedDict()        
             obs['image'] = obs_nav
 
@@ -319,7 +326,7 @@ class StanfordEnvironment(AbstractEnvironment):
     def get_observation(self, state=None, normalize=True, normalization_data=None, occlusion=False):
         if state == None:
             state_temp = self.state
-            print("SELF.STATE", self.state)
+            #print("SELF.STATE", self.state)
             state = self.state + self.true_env_corner
             state_arr = np.array([[state[0], state[1], self.orientation]])
         else:
@@ -331,10 +338,11 @@ class StanfordEnvironment(AbstractEnvironment):
         #os.mkdir(path)
         check_path(path)
 
-        print("In get_observation: segfault is after here")
-        print("STATE ARR", state_arr)
+        #print("In get_observation: segfault is after here")
+        #print("STATE ARR", state_arr)
         img_path, traversible, dx_m = generate_observation(state_arr, path)
-        print("In get_observation: segfault is before here")
+        #img_path, traversible, dx_m = generate_observation(state_arr, path, self.renderer)
+        #print("In get_observation: segfault is before here")
         image = cv2.imread(img_path, cv2.IMREAD_COLOR)
         #image = np.random.randint(255, size=(64, 64, 3))
         

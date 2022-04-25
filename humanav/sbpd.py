@@ -27,9 +27,9 @@ if sys.version_info[0] == 2:
     import utils
     import mp_env
 else:
-    from planet.humanav.render import swiftshader_renderer as renderer
-    from planet.humanav import utils
-    from planet.humanav import mp_env
+    from humanav.render import swiftshader_renderer as renderer 
+    from humanav import utils
+    from humanav import mp_env
 
 def get_dataset(dataset_name, imset, data_dir, surreal_params):
   if dataset_name == 'sbpd':
@@ -53,7 +53,6 @@ class Loader():
 
   def load_building_meshes(self, building, materials_scale=1.0):
     dir_name = os.path.join(building['data_dir'], 'mesh', building['name'])
-    print(dir_name)
     mesh_file_name = glob.glob1(dir_name, '*.obj')[0]
     mesh_file_name_full = os.path.join(dir_name, mesh_file_name)
     logging.error('Loading building from obj file: %s', mesh_file_name_full)
@@ -64,7 +63,7 @@ class Loader():
   def load_data(self, name, robot, flip=False):
     env = utils.Foo(padding=10, resolution=5, num_point_threshold=2,
       valid_min=-10, valid_max=200, n_samples_per_face=200)
-    building = mp_env.Building(self, name, robot, env, flip=flip) 
+    building = mp_env.Building(self, name, robot, env, flip=flip)
     return building
 
   def load_random_human(self, speed, gender, human_materials, body_shape, rng):

@@ -29,8 +29,8 @@ import cv2, ctypes, logging, os, numpy as np
 import pyassimp as assimp
 from OpenGL.GLES2 import *
 from OpenGL.EGL import *
-from planet.humanav.render import rotation_utils
-from planet.humanav import utils
+from humanav.render import rotation_utils
+from humanav import utils
 
 __version__ = 'swiftshader_renderer'
 
@@ -91,6 +91,7 @@ class Shape():
         assert(os.path.exists(file_name)), \
             'Texture file {:s} foes not exist.'.format(file_name)
         materials.append(self._load_materials_from_file(file_name, materials_scale))
+        print("LOADING", m)
     self.scene = scene
     self.materials = materials
 
@@ -492,7 +493,7 @@ class SwiftshaderRenderer():
         glBindBuffer(GL_ARRAY_BUFFER, vbo)
         glBufferData(GL_ARRAY_BUFFER, vvt.dtype.itemsize*vvt.size, vvt, GL_STATIC_DRAW)
         assert(glGetError() == GL_NO_ERROR)
-
+ 
   def _load_mesh_into_gl(self, mesh, material=None, tbo=None):
     vvt, num = self._mesh_to_vvt(mesh)
 
@@ -509,9 +510,21 @@ class SwiftshaderRenderer():
       assert(material is not None)
       tbo = glGenTextures(1)
       glBindTexture(GL_TEXTURE_2D, tbo)
+      # import time
+      # print("########### TEX CHECKING MEMORY!! ###########")
+      # t0 = time.time()
+      # t1 = time.time()
+      # while t1 - t0 < 1:
+      #     t1 = time.time()
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, material.shape[1],
                    material.shape[0], 0, GL_RGB, GL_UNSIGNED_BYTE,
                    np.reshape(material, (-1)))
+      # t0 = time.time()
+      # t1 = time.time()
+      # while t1 - t0 < 1:
+      #     t1 = time.time()
+      # print("########### TEX DONE CHECKING MEMORY!! ###########")
+      
       # glPixelStorei(GL_UNPACK_ALIGNMENT,1)
       # m = np.zeros([material.shape[0], material.shape[1], 4], dtype=material.dtype)
       # m[...,:3] = material
@@ -579,18 +592,14 @@ class SwiftshaderRenderer():
     view_matrix = np.reshape(view_matrix, (-1))
     
     if self.egl_program['rgb'] is not None:
-      print("In renderer: position camera: segfault after here")
-      glUseProgram(self.egl_program['rgb'])  
-      print("In renderer: position camera: segfault before here")
+      glUseProgram(self.egl_program['rgb'])
       view_matrix_o = glGetUniformLocation(self.egl_program['rgb'], 'uViewMatrix')
       glUniformMatrix4fv(view_matrix_o, 1, GL_FALSE, view_matrix)
-      
+
     if self.egl_program['disparity'] is not None:
-      #print("In renderer: position camera: segfault after here") 
       glUseProgram(self.egl_program['disparity'])
       view_matrix_o = glGetUniformLocation(self.egl_program['disparity'], 'uViewMatrix')
       glUniformMatrix4fv(view_matrix_o, 1, GL_FALSE, view_matrix)
-      #print("In renderer: position camera: segfault before here")
 
     self.modelview_matrix = view_matrix.astype(np.double)
     return None, None #camera_xyz, q

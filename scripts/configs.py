@@ -252,6 +252,8 @@ def _active_collection(collects, defaults, config, params):
       objective=params.get('collect_objective', 'reward'),
       after=params.get('collect_every', 5000),
       every=params.get('collect_every', 5000),
+      # after=params.get('collect_every', 50),
+      # every=params.get('collect_every', 50),
       until=-1,
       action_noise=0.0,
       action_noise_ramp=params.get('action_noise_ramp', 0),

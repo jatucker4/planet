@@ -298,13 +298,13 @@ class Trainer(object):
       Session.
     """
     #config = tf.ConfigProto()
-    config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)
-    #print("\nCONFIG DEVICE COUNT", config.device_count)
+    #config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True, device_count = {'GPU': 0})
+    config = tf.ConfigProto(allow_soft_placement=True, device_count = {'GPU': 0})
     config.gpu_options.visible_device_list = "1"
     config.gpu_options.allow_growth = True
     try:
-      return tf.Session('local', config=config)
-    except tf.errors.NotFoundError:
+      return tf.Session('local', config=config)  
+    except tf.errors.NotFoundError: 
       return tf.Session(config=config)
 
   def _initialize_variables(self, sess, savers, logdirs, checkpoints):
