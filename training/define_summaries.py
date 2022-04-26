@@ -24,7 +24,8 @@ from planet.training import utility
 from planet.tools import summary
 
 
-def define_summaries(graph, config, cleanups):
+#def define_summaries(graph, config, cleanups):
+def define_summaries(graph, config, cleanups, created_env=None):
   summaries = []
   plot_summaries = []  # Control dependencies for non thread-safe matplot.
   length = graph.data['length']
@@ -95,23 +96,24 @@ def define_summaries(graph, config, cleanups):
       plot_summaries += plot_summary
       summaries += plot_summary
 
-  # with tf.variable_scope('simulation'):
-  #   sim_returns = []
-  #   for name, params in config.test_collects.items():
-  #     # These are expensive and equivalent for train and test phases, so only
-  #     # do one of them.
-  #     print("OUT HERE!")
-  #     sim_summary, sim_return = tf.cond(
-  #         tf.equal(graph.phase, 'test'),
-  #         lambda: utility.simulate_episodes(
-  #             config, params, graph, cleanups,
-  #             expensive_summaries=False,
-  #             gif_summary=True,
-  #             name=name),
-  #         lambda: ('', 0.0),
-  #         name='should_simulate_' + params.task.name)
-  #     summaries.append(sim_summary)
-  #     sim_returns.append(sim_return)
+  with tf.variable_scope('simulation'):
+    sim_returns = []
+    for name, params in config.test_collects.items():
+      # These are expensive and equivalent for train and test phases, so only
+      # do one of them.
+      print("OUT HERE!")
+      sim_summary, sim_return = tf.cond(
+          tf.equal(graph.phase, 'test'),
+          lambda: utility.simulate_episodes(
+              config, params, graph, cleanups,
+              expensive_summaries=False,
+              gif_summary=True,
+              name=name,
+              batchenv=created_env),
+          lambda: ('', 0.0),
+          name='should_simulate_' + params.task.name)
+      summaries.append(sim_summary)
+      sim_returns.append(sim_return)
 
   summaries = tf.summary.merge(summaries)
   #score = tf.reduce_mean(sim_returns)[None]

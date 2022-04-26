@@ -282,8 +282,10 @@ def apply_optimizers(objectives, trainer, config):
   return summaries, grad_norms
 
 
+# def simulate_episodes(
+#     config, params, graph, cleanups, expensive_summaries, gif_summary, name):
 def simulate_episodes(
-    config, params, graph, cleanups, expensive_summaries, gif_summary, name):
+    config, params, graph, cleanups, expensive_summaries, gif_summary, name, batchenv=None):
   def env_ctor():
     env = params.task.env_ctor()
     if params.save_episode_dir:
@@ -305,12 +307,18 @@ def simulate_episodes(
     params.update(agent_config)
   with agent_config.unlocked:
     agent_config.update(params)
-  summary, return_, cleanup = control.simulate(
+  # summary, return_, cleanup = control.simulate(
+  #     graph.step, env_ctor, params.task.max_length,
+  #     params.num_agents, agent_config, config.isolate_envs,
+  #     expensive_summaries, gif_summary, name=name)
+  summary, return_, cleanup, created_env = control.simulate(
       graph.step, env_ctor, params.task.max_length,
       params.num_agents, agent_config, config.isolate_envs,
-      expensive_summaries, gif_summary, name=name)
+      expensive_summaries, gif_summary, name=name, batchenv=batchenv)
+  print("FINISHED control simulate", created_env)
   cleanups.append(cleanup)  # Work around tf.cond() tensor return type.
-  return summary, return_
+  # return summary, return_
+  return summary, return_, created_env
 
 
 def print_metrics(metrics, step, every, name='metrics'):

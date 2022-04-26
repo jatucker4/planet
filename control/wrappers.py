@@ -230,6 +230,7 @@ class ActionRepeat(object):
     self._amount = amount
 
   def __getattr__(self, name):
+    print("I'M HERE!!", name)
     return getattr(self._env, name)
 
   def step(self, action):

@@ -37,18 +37,19 @@ class HumANavRenderer():
 
                 r_obj = sr.get_r_obj(self.p.camera_params)
                 self.building.set_r_obj(r_obj)
-                import time
-                print("########### CHECKING MEMORY!! ###########")
-                t0 = time.time()
-                t1 = time.time()
-                while t1 - t0 < 10:
-                    t1 = time.time()
+                # import time
+                # print("########### CHECKING MEMORY!! ###########")
+                # t0 = time.time()
+                # t1 = time.time()
+                # while t1 - t0 < 10:
+                #     t1 = time.time()
                 self.building.load_building_into_scene()
-                t0 = time.time()
-                t1 = time.time()
-                while t1 - t0 < 10:
-                    t1 = time.time()
-                print("########### DONE CHECKING MEMORY!! ###########")
+                # t0 = time.time()
+                # t1 = time.time()
+                # while t1 - t0 < 10:
+                #     t1 = time.time()
+                # print("########### DONE CHECKING MEMORY!! ###########")
+                
                 # t0 = time.time()
                 # t1 = time.time()
                 # while t1 - t0 < 10:
