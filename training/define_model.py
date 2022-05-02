@@ -63,6 +63,9 @@ def define_model(data, trainer, config):
   summaries, grad_norms = utility.apply_optimizers(
       objectives, trainer, config)
 
+  outside_summary = None
+  outside_return = None
+  
   # Active data collection.
   with tf.variable_scope('collection'):
     with tf.control_dependencies(summaries):  # Make sure to train first.
@@ -71,15 +74,27 @@ def define_model(data, trainer, config):
         schedule = tools.schedule.binary(
             step, config.batch_shape[0],
             params.steps_after, params.steps_every, params.steps_until)
-        summary, _ = tf.cond(
+        # summary, _ = tf.cond(
+        #     tf.logical_and(tf.equal(trainer.phase, 'train'), schedule),
+        #     functools.partial(
+        #         utility.simulate_episodes, config, params, graph, cleanups,
+        #         expensive_summaries=False, gif_summary=False, name=name),
+        #     lambda: (tf.constant(''), tf.constant(0.0)),
+        #     name='should_collect_' + name)
+        ssummary, ret = tf.cond(
             tf.logical_and(tf.equal(trainer.phase, 'train'), schedule),
             functools.partial(
                 utility.simulate_episodes, config, params, graph, cleanups,
                 expensive_summaries=False, gif_summary=False, name=name),
             lambda: (tf.constant(''), tf.constant(0.0)),
             name='should_collect_' + name)
-        summaries.append(summary)
+        #summaries.append(summary)
+        summaries.append(ssummary)
 
+        outside_summary = ssummary
+        outside_return = ret
+
+  print("SSUMARY, RET", outside_summary, outside_return)
 
   # Compute summaries.
   graph = tools.AttrDict(locals())

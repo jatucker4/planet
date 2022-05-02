@@ -312,6 +312,8 @@ def simulate_episodes(
       params.num_agents, agent_config, config.isolate_envs,
       expensive_summaries, gif_summary, name=name)
   cleanups.append(cleanup)  # Work around tf.cond() tensor return type.
+  print("SUMMARY IN SIMULATE_EPISODES", summary)
+  print("RETURN IN SIMULATE EPISODES", return_)
   return summary, return_
 
 

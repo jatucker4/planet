@@ -114,6 +114,6 @@ def define_summaries(graph, config, cleanups, created_env=None):
       sim_returns.append(sim_return)
 
   summaries = tf.summary.merge(summaries)
-  #score = tf.reduce_mean(sim_returns)[None]
-  score = 0.
+  score = tf.reduce_mean(sim_returns)[None]
+  #score = 0.
   return summaries, score

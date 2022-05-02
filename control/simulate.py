@@ -38,13 +38,18 @@ def simulate(
     gif_summary=True, name='simulate'):
   summaries = []
   with tf.variable_scope(name):
-    return_, image, action, reward, cleanup = collect_rollouts(
-        step=step,
-        env_ctor=env_ctor,
-        duration=duration,
-        num_agents=num_agents,
-        agent_config=agent_config,
-        isolate_envs=isolate_envs)
+    # return_, image, action, reward, cleanup = collect_rollouts(
+    #     step=step,
+    #     env_ctor=env_ctor,
+    #     duration=duration,
+    #     num_agents=num_agents,
+    #     agent_config=agent_config,
+    #     isolate_envs=isolate_envs)
+    return_ = 0.
+    image = 0.
+    action = 0.
+    reward = 0.
+    cleanup = lambda: None
     return_mean = tf.reduce_mean(return_)
     summaries.append(tf.summary.scalar('return', return_mean))
     if expensive_summaries:
@@ -53,9 +58,9 @@ def simulate(
       summaries.append(tf.summary.histogram('action_hist', action))
       summaries.append(tools.image_strip_summary(
           'image', image, max_length=duration))
-    if gif_summary:
-      summaries.append(tools.gif_summary(
-          'animation', image, max_outputs=1, fps=20))
+    #if gif_summary:
+    #  summaries.append(tools.gif_summary(
+    #      'animation', image, max_outputs=1, fps=20))
   summary = tf.summary.merge(summaries)
   return summary, return_mean, cleanup
 
