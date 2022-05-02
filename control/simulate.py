@@ -29,33 +29,22 @@ from planet.control import mpc_agent
 from planet.control import wrappers
 from planet.tools import streaming_mean
 
+from planet.control.batch_env import BatchEnv
 
-# def simulate(
-#     step, env_ctor, duration, num_agents, agent_config,
-#     isolate_envs='none', expensive_summaries=False,
-#     gif_summary=True, name='simulate'):
+
 def simulate(
     step, env_ctor, duration, num_agents, agent_config,
     isolate_envs='none', expensive_summaries=False,
-    gif_summary=True, name='simulate', batchenv=None):
+    gif_summary=True, name='simulate'):
   summaries = []
   with tf.variable_scope(name):
-    # return_, image, action, reward, cleanup = collect_rollouts(
-    #     step=step,
-    #     env_ctor=env_ctor,
-    #     duration=duration,
-    #     num_agents=num_agents,
-    #     agent_config=agent_config,
-    #     isolate_envs=isolate_envs)
-    return_, image, action, reward, cleanup, created_env = collect_rollouts(
+    return_, image, action, reward, cleanup = collect_rollouts(
         step=step,
         env_ctor=env_ctor,
         duration=duration,
         num_agents=num_agents,
         agent_config=agent_config,
-        isolate_envs=isolate_envs,
-        batchenv=batchenv)
-    print("FINISHED collect rollouts", created_env)
+        isolate_envs=isolate_envs)
     return_mean = tf.reduce_mean(return_)
     summaries.append(tf.summary.scalar('return', return_mean))
     if expensive_summaries:
@@ -68,17 +57,12 @@ def simulate(
       summaries.append(tools.gif_summary(
           'animation', image, max_outputs=1, fps=20))
   summary = tf.summary.merge(summaries)
-  # return summary, return_mean, cleanup
-  return summary, return_mean, cleanup, created_env
+  return summary, return_mean, cleanup
 
 
-# def collect_rollouts(
-#     step, env_ctor, duration, num_agents, agent_config, isolate_envs):
 def collect_rollouts(
-    step, env_ctor, duration, num_agents, agent_config, isolate_envs, batchenv=None):
-  #batch_env = define_batch_env(env_ctor, num_agents, isolate_envs)
-  batch_env, created_env = define_batch_env(env_ctor, num_agents, isolate_envs, batchenv)
-  print("MADE the batch env", created_env)
+    step, env_ctor, duration, num_agents, agent_config, isolate_envs):
+  batch_env = define_batch_env(env_ctor, num_agents, isolate_envs)
   agent = mpc_agent.MPCAgent(batch_env, step, False, False, agent_config)
   cleanup = lambda: batch_env.close()
 
@@ -106,35 +90,37 @@ def collect_rollouts(
   image = tf.transpose(image, [1, 0, 2, 3, 4])
   action = tf.transpose(action, [1, 0, 2])
   reward = tf.transpose(reward)
-  # return score, image, action, reward, cleanup
-  return score, image, action, reward, cleanup, created_env
+  return score, image, action, reward, cleanup
 
 
-#def define_batch_env(env_ctor, num_agents, isolate_envs):
-def define_batch_env(env_ctor, num_agents, isolate_envs, batchenv=None):
+def define_batch_env(env_ctor, num_agents, isolate_envs):
   with tf.variable_scope('environments'):
     if isolate_envs == 'none':
       factory = lambda ctor: ctor()
       blocking = True
     elif isolate_envs == 'thread':
-      factory = functools.partial(wrappers.Async, strategy='thread')
+      #factory = functools.partial(wrappers.Async, strategy='thread')
+      factory = functools.partial(wrappers.Async.get_my_env, strategy='thread')
       blocking = False
     elif isolate_envs == 'process':
-      factory = functools.partial(wrappers.Async, strategy='process')
+      #factory = functools.partial(wrappers.Async, strategy='process')
+      factory = functools.partial(wrappers.Async.get_my_env, strategy='process')
       blocking = False
     else:
       raise NotImplementedError(isolate_envs)
-    envs = [factory(env_ctor) for _ in range(num_agents)]
-    ###### MY ADDITION ######
-    if batchenv is None:
-      env = batch_env.BatchEnv(envs, blocking)
-    else:
-      env = batchenv
+    #print("ENV_CTOR", env_ctor)
+    #envs = [factory(env_ctor) for _ in range(num_agents)]
+    envs = [env_ctor() for _ in range(num_agents)]
+    #print("ENVS", envs)
+    # INSTANTIATE BATCH_ENV ONLY ONCE
+    env = BatchEnv.get_batch_env(envs, blocking)
+    #env = BatchEnv.get_batch_env(factory, env_ctor, num_agents, blocking)
     #env = batch_env.BatchEnv(envs, blocking)
+    
     #env = in_graph_batch_env.InGraphBatchEnv(env)
-    new_env = in_graph_batch_env.InGraphBatchEnv(env)
-  # return env
-  return new_env, env
+    env = in_graph_batch_env.InGraphBatchEnv.get_my_env(env)
+    
+  return env 
 
 
 def simulate_step(batch_env, algo, log=True, reset=False):

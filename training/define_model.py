@@ -63,48 +63,30 @@ def define_model(data, trainer, config):
   summaries, grad_norms = utility.apply_optimizers(
       objectives, trainer, config)
 
-  scope_env = None
   # Active data collection.
   with tf.variable_scope('collection'):
     with tf.control_dependencies(summaries):  # Make sure to train first.
       for name, params in config.train_collects.items():
-        print("INSIDE DEFINE MODEL DATA COLLECTION", name, params)
+        #print("INSIDE DEFINE MODEL DATA COLLECTION", name, params)
         schedule = tools.schedule.binary(
             step, config.batch_shape[0],
             params.steps_after, params.steps_every, params.steps_until)
-        # summary, _ = tf.cond(
-        #     tf.logical_and(tf.equal(trainer.phase, 'train'), schedule),
-        #     functools.partial(
-        #         utility.simulate_episodes, config, params, graph, cleanups,
-        #         expensive_summaries=False, gif_summary=False, name=name),
-        #     lambda: (tf.constant(''), tf.constant(0.0)),
-        #     name='should_collect_' + name)
-        summary, _, created_env = tf.cond(
+        summary, _ = tf.cond(
             tf.logical_and(tf.equal(trainer.phase, 'train'), schedule),
             functools.partial(
                 utility.simulate_episodes, config, params, graph, cleanups,
-                expensive_summaries=False, gif_summary=False, name=name, batchenv=None),
-            lambda: (tf.constant(''), tf.constant(0.0), None),
+                expensive_summaries=False, gif_summary=False, name=name),
+            lambda: (tf.constant(''), tf.constant(0.0)),
             name='should_collect_' + name)
-        scope_env = created_env
-        print("GOT TO THIS POINT")
         summaries.append(summary)
 
-  print("PRINTING")
-  print(created_env)
-  print(scope_env)
 
   # Compute summaries.
   graph = tools.AttrDict(locals())
   print("trainer.log", trainer.log)
-  # summary, score = tf.cond(
-  #     trainer.log,
-  #     lambda: define_summaries.define_summaries(graph, config, cleanups),
-  #     lambda: (tf.constant(''), tf.zeros((0,), tf.float32)),
-  #     name='summaries')
   summary, score = tf.cond(
       trainer.log,
-      lambda: define_summaries.define_summaries(graph, config, cleanups, scope_env),
+      lambda: define_summaries.define_summaries(graph, config, cleanups),
       lambda: (tf.constant(''), tf.zeros((0,), tf.float32)),
       name='summaries')
   summaries = tf.summary.merge([summaries, summary])

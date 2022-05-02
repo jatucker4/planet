@@ -91,7 +91,7 @@ class Shape():
         assert(os.path.exists(file_name)), \
             'Texture file {:s} foes not exist.'.format(file_name)
         materials.append(self._load_materials_from_file(file_name, materials_scale))
-        print("LOADING", m)
+        #print("LOADING", m)
     self.scene = scene
     self.materials = materials
 

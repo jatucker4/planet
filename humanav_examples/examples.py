@@ -235,7 +235,7 @@ def generate_one_data(camera_pos_13, path):
     camera_pos_str = '_' + str(camera_pos_13[0][0]) + '_' + str(camera_pos_13[0][1]) + '_' + str(camera_pos_13[0][2])
     filename_topdown = 'top_view' + camera_pos_str + '.png'
     filename_rgb = 'rgb' + camera_pos_str + '.png'
-
+ 
     # Plot the rendered images
     path_top_down = '/home/ext_drive/sampada_deglurkar/vae_stanford/' + path + '/top_downs/'
     path_rgbs = '/home/ext_drive/sampada_deglurkar/vae_stanford/' + path + '/rgbs/'

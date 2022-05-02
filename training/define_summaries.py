@@ -101,15 +101,13 @@ def define_summaries(graph, config, cleanups, created_env=None):
     for name, params in config.test_collects.items():
       # These are expensive and equivalent for train and test phases, so only
       # do one of them.
-      print("OUT HERE!")
       sim_summary, sim_return = tf.cond(
           tf.equal(graph.phase, 'test'),
           lambda: utility.simulate_episodes(
               config, params, graph, cleanups,
               expensive_summaries=False,
               gif_summary=True,
-              name=name,
-              batchenv=created_env),
+              name=name),
           lambda: ('', 0.0),
           name='should_simulate_' + params.task.name)
       summaries.append(sim_summary)

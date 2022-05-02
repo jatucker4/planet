@@ -31,12 +31,15 @@ class InGraphBatchEnv(object):
   flags are held in according variables.
   """
 
+  myenv = None
+
   def __init__(self, batch_env):
     """Batch of environments inside the TensorFlow graph.
 
     Args:
       batch_env: Batch environment.
     """
+    print("MAKING a InGraphBatchEnv!")
     self._batch_env = batch_env
     batch_dims = (len(self._batch_env),)
     observ_shape = self._parse_shape(self._batch_env.observation_space)
@@ -58,6 +61,19 @@ class InGraphBatchEnv(object):
       self._done = tf.get_variable(
           'done', batch_dims, tf.int32,
           tf.constant_initializer(False), trainable=False)
+  
+  @classmethod
+  def get_my_env(cls, batch_env):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(batch_env)
+    return cls.myenv
 
   def __getattr__(self, name):
     """Forward unimplemented attributes to one of the original environments.

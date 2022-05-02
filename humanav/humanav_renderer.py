@@ -82,7 +82,7 @@ class HumANavRenderer():
                 return r
             else:
                 assert False, "Renderer settings are different than previously instantiated renderer"
-
+        
         cls.renderer = cls(params)
         return cls.renderer
 

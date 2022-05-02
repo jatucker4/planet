@@ -25,6 +25,8 @@ from planet.humanav_examples.examples import *
 class BatchEnv(object):
   """Combine multiple environments to step them in batch."""
 
+  batchenv = None
+
   def __init__(self, envs, blocking):
     """Combine multiple environments to step them in batch.
 
@@ -48,6 +50,46 @@ class BatchEnv(object):
     action_space = self._envs[0].action_space
     if not all(env.action_space == action_space for env in self._envs):
       raise ValueError('All environments must use the same observation space.')
+
+
+  # def __init__(self, factory, env_ctor, num_agents, blocking):
+  #   """Combine multiple environments to step them in batch.
+
+  #   To step environments in parallel, environments must support a
+  #   `blocking=False` argument to their step and reset functions that makes them
+  #   return callables instead to receive the result at a later time.
+
+  #   Args:
+  #     envs: List of environments.
+  #     blocking: Step environments after another rather than in parallel.
+
+  #   Raises:
+  #     ValueError: Environments have different observation or action spaces.
+  #   """
+  #   self._envs = [factory(env_ctor) for _ in range(num_agents)]
+  #   print("\nI got here, here are the envs!", self._envs, blocking, "\n")
+  #   self._blocking = blocking
+  #   observ_space = self._envs[0].observation_space
+  #   if not all(env.observation_space == observ_space for env in self._envs):
+  #     raise ValueError('All environments must use the same observation space.')
+  #   action_space = self._envs[0].action_space
+  #   if not all(env.action_space == action_space for env in self._envs):
+  #     raise ValueError('All environments must use the same observation space.')
+  
+  @classmethod
+  def get_batch_env(cls, envs, blocking):
+  #def get_batch_env(cls, factory, env_ctor, num_agents, blocking):
+    """
+    Used to instantiate a BatchEnv object. Ensures that only one BatchEnv
+    object ever exists.
+    """
+    b = cls.batchenv
+    if b is not None:
+      return b 
+
+    cls.batchenv = cls(envs, blocking)
+    #cls.batchenv = cls(factory, env_ctor, num_agents, blocking)
+    return cls.batchenv
 
   def __len__(self):
     """Number of combined environments."""
@@ -90,8 +132,11 @@ class BatchEnv(object):
           for env, action in zip(self._envs, actions)]
     else:
       print("\nGoing to enter env.step now\n")
+      # transitions = [
+      #     env.step(action, blocking=False)
+      #     for env, action in zip(self._envs, actions)]
       transitions = [
-          env.step(action, blocking=False)
+          env.step(action)
           for env, action in zip(self._envs, actions)]
       transitions = [transition() for transition in transitions]
     observs, rewards, dones, infos = zip(*transitions)
@@ -117,7 +162,8 @@ class BatchEnv(object):
     else:
       print("\nGoing to enter env.reset now\n")
       print(self._envs)
-      observs = [self._envs[index].reset(blocking=False) for index in indices]
+      #observs = [self._envs[index].reset(blocking=False) for index in indices]
+      observs = [self._envs[index].reset() for index in indices]
       observs = [observ() for observ in observs]
     observ = np.stack(observs)
     return observ

@@ -36,9 +36,24 @@ from planet.tools import nested
 
 class ObservationDict(object):
 
+  myenv = None
+
   def __init__(self, env, key='observ'):
     self._env = env
     self._key = key
+
+  @classmethod
+  def get_my_env(cls, envs, key='observ'):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(envs, key)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -66,9 +81,24 @@ class ObservationDict(object):
 class ConcatObservation(object):
   """Select observations from a dict space and concatenate them."""
 
+  myenv = None
+
   def __init__(self, env, keys):
     self._env = env
     self._keys = keys
+  
+  @classmethod
+  def get_my_env(cls, env, keys):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, keys)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -101,9 +131,24 @@ class ConcatObservation(object):
 
 class SelectObservations(object):
 
+  myenv = None
+
   def __init__(self, env, keys):
     self._env = env
     self._keys = keys
+  
+  @classmethod
+  def get_my_env(cls, env, keys):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, keys)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -130,12 +175,27 @@ class SelectObservations(object):
 
 class PixelObservations(object):
 
+  myenv = None
+
   def __init__(self, env, size=(64, 64), dtype=np.uint8, key='image'):
     assert isinstance(env.observation_space, gym.spaces.Dict)
     self._env = env
     self._size = size
     self._dtype = dtype
     self._key = key
+  
+  @classmethod
+  def get_my_env(cls, env, size=(64, 64), dtype=np.uint8, key='image'):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, size, dtype, key)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -182,10 +242,25 @@ class PixelObservations(object):
 
 class ObservationToRender(object):
 
+  myenv = None
+
   def __init__(self, env, key='image'):
     self._env = env
     self._key = key
     self._image = None
+  
+  @classmethod
+  def get_my_env(cls, env, key='image'):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, key)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -210,10 +285,25 @@ class ObservationToRender(object):
 
 class OverwriteRender(object):
 
+  myenv = None
+
   def __init__(self, env, render_fn):
     self._env = env
     self._render_fn = render_fn
     self._env.render('rgb_array')  # Set up viewer.
+  
+  @classmethod
+  def get_my_env(cls, env, render_fn):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, render_fn)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -225,12 +315,26 @@ class OverwriteRender(object):
 class ActionRepeat(object):
   """Repeat the agent action multiple steps."""
 
+  myenv = None
+
   def __init__(self, env, amount):
     self._env = env
     self._amount = amount
+  
+  @classmethod
+  def get_my_env(cls, env, amount):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, amount)
+    return cls.myenv
 
   def __getattr__(self, name):
-    print("I'M HERE!!", name)
     return getattr(self._env, name)
 
   def step(self, action):
@@ -250,12 +354,27 @@ class ActionRepeat(object):
 
 class NormalizeActions(object):
 
+  myenv = None
+
   def __init__(self, env):
     self._env = env
     low, high = env.action_space.low, env.action_space.high
     self._enabled = np.logical_and(np.isfinite(low), np.isfinite(high))
     self._low = np.where(self._enabled, low, -np.ones_like(low))
     self._high = np.where(self._enabled, high, np.ones_like(low))
+  
+  @classmethod
+  def get_my_env(cls, env):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -275,6 +394,8 @@ class NormalizeActions(object):
 class DeepMindWrapper(object):
   """Wraps a DM Control environment into a Gym interface."""
 
+  myenv = None
+
   metadata = {'render.modes': ['rgb_array']}
   reward_range = (-np.inf, np.inf)
 
@@ -282,6 +403,19 @@ class DeepMindWrapper(object):
     self._env = env
     self._render_size = render_size
     self._camera_id = camera_id
+  
+  @classmethod
+  def get_my_env(cls, env, render_size=(64, 64), camera_id=0):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, render_size, camera_id)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -324,10 +458,25 @@ class DeepMindWrapper(object):
 class MaximumDuration(object):
   """Limits the episode to a given upper number of decision points."""
 
+  myenv = None
+
   def __init__(self, env, duration):
     self._env = env
     self._duration = duration
     self._step = None
+  
+  @classmethod
+  def get_my_env(cls, env, duration):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, duration)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -350,10 +499,25 @@ class MaximumDuration(object):
 class MinimumDuration(object):
   """Extends the episode to a given lower number of decision points."""
 
+  myenv = None
+
   def __init__(self, env, duration):
     self._env = env
     self._duration = duration
     self._step = None
+  
+  @classmethod
+  def get_my_env(cls, env, duration):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, duration)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -372,9 +536,24 @@ class MinimumDuration(object):
 
 class ProcessObservation(object):
 
+  myenv = None
+
   def __init__(self, env, process_fn):
     self._env = env
     self._process_fn = process_fn
+  
+  @classmethod
+  def get_my_env(cls, env, process_fn):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, process_fn)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -402,9 +581,24 @@ class ProcessObservation(object):
 class PadActions(object):
   """Pad action space to the largest action space."""
 
+  myenv = None
+
   def __init__(self, env, spaces):
     self._env = env
     self._action_space = self._pad_box_space(spaces)
+  
+  @classmethod
+  def get_my_env(cls, env, spaces):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, spaces)
+    return cls.myenv
 
   @property
   def observation_space(self):
@@ -447,10 +641,25 @@ class CollectGymDataset(object):
   episode length is one more than the number of decision points.
   """
 
+  myenv = None
+
   def __init__(self, env, outdir):
     self._env = env
     self._outdir = outdir and os.path.expanduser(outdir)
     self._episode = None
+  
+  @classmethod
+  def get_my_env(cls, env, outdir):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env, outdir)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -530,8 +739,23 @@ class CollectGymDataset(object):
 class ConvertTo32Bit(object):
   """Convert data types of an OpenAI Gym environment to 32 bit."""
 
+  myenv = None
+
   def __init__(self, env):
     self._env = env
+  
+  @classmethod
+  def get_my_env(cls, env):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(env)
+    return cls.myenv
 
   def __getattr__(self, name):
     return getattr(self._env, name)
@@ -564,6 +788,8 @@ class ConvertTo32Bit(object):
 
 class Async(object):
   """Step environment in a separate process for lock free paralellism."""
+
+  myenv = None
 
   # Message types for communication via the pipe.
   _ACCESS = 1
@@ -599,6 +825,19 @@ class Async(object):
     self._process.start()
     self._observ_space = None
     self._action_space = None
+  
+  @classmethod
+  def get_my_env(cls, constructor, strategy='thread'):
+    """
+    Used to instantiate this object. Ensures that only one of this
+    object ever exists.
+    """
+    b = cls.myenv
+    if b is not None:
+      return b 
+
+    cls.myenv = cls(constructor, strategy)
+    return cls.myenv
 
   @property
   def observation_space(self):

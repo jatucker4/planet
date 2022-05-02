@@ -173,7 +173,7 @@ class Trainer(object):
     Yields:
       Reported mean scores.
     """
-    print("\nINSIDE ITERATE\n")
+    #print("\nINSIDE ITERATE\n")
     sess = sess or self._create_session()
     with sess:
       self._initialize_variables(

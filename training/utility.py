@@ -187,7 +187,7 @@ def train(model_fn, datasets, logdir, config):
             checkpoint_every=config.test_checkpoint_every)
     for saver in config.savers:
       trainer.add_saver(**saver)
-    print("\nI'M INSIDE TRAIN FN\n")
+    #print("\nI'M INSIDE TRAIN FN\n")
     for score in trainer.iterate(config.max_steps):
       yield score
   finally:
@@ -281,16 +281,16 @@ def apply_optimizers(objectives, trainer, config):
     grad_norms[ob.name] = grad_norm
   return summaries, grad_norms
 
-
-# def simulate_episodes(
-#     config, params, graph, cleanups, expensive_summaries, gif_summary, name):
 def simulate_episodes(
-    config, params, graph, cleanups, expensive_summaries, gif_summary, name, batchenv=None):
+    config, params, graph, cleanups, expensive_summaries, gif_summary, name):
   def env_ctor():
     env = params.task.env_ctor()
+    print("INSIDE SIMULATE EPISODES", env)
     if params.save_episode_dir:
-      env = control.wrappers.CollectGymDataset(env, params.save_episode_dir)
-    env = control.wrappers.ConcatObservation(env, ['image'])
+      #env = control.wrappers.CollectGymDataset(env, params.save_episode_dir)
+      env = control.wrappers.CollectGymDataset.get_my_env(env, params.save_episode_dir)
+    #env = control.wrappers.ConcatObservation(env, ['image'])
+    env = control.wrappers.ConcatObservation.get_my_env(env, ['image'])
     return env
   bind_or_none = lambda x, **kw: x and functools.partial(x, **kw)
   cell = graph.cell
@@ -307,18 +307,12 @@ def simulate_episodes(
     params.update(agent_config)
   with agent_config.unlocked:
     agent_config.update(params)
-  # summary, return_, cleanup = control.simulate(
-  #     graph.step, env_ctor, params.task.max_length,
-  #     params.num_agents, agent_config, config.isolate_envs,
-  #     expensive_summaries, gif_summary, name=name)
-  summary, return_, cleanup, created_env = control.simulate(
+  summary, return_, cleanup = control.simulate(
       graph.step, env_ctor, params.task.max_length,
       params.num_agents, agent_config, config.isolate_envs,
-      expensive_summaries, gif_summary, name=name, batchenv=batchenv)
-  print("FINISHED control simulate", created_env)
+      expensive_summaries, gif_summary, name=name)
   cleanups.append(cleanup)  # Work around tf.cond() tensor return type.
-  # return summary, return_
-  return summary, return_, created_env
+  return summary, return_
 
 
 def print_metrics(metrics, step, every, name='metrics'):
