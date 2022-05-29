@@ -92,13 +92,13 @@ def collect_rollouts(
   cleanup = lambda: batch_env.close()
 
   def simulate_fn(unused_last, step):
-    # done, score, unused_summary = simulate_step(
-    #    batch_env, agent,
-    #    log=False,
-    #    reset=tf.equal(step, 0))
+    done, score, unused_summary = simulate_step(
+       batch_env, agent,
+       log=False,
+       reset=tf.equal(step, 0))
 
-    done = donee
-    score = scoree
+    # done = donee
+    # score = scoree
 
     # done = tf.zeros([num_agents], tf.bool)
     # score = tf.zeros([num_agents], tf.float32)

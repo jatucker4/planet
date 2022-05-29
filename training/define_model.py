@@ -95,25 +95,25 @@ def define_model(data, trainer, config):
   print(l6) # Stanford
 
   ## CALL SIMULATE_STEP AND PASS THE OUTPUT EVERYWHERE ##
-  bind_or_none = lambda x, **kw: x and functools.partial(x, **kw)
-  celll = graph.cell
-  agent_config = tools.AttrDict(
-      cell=celll,
-      encoder=graph.encoder,
-      planner=functools.partial(params.planner, graph=graph),
-      objective=bind_or_none(params.objective, graph=graph),
-      exploration=params.exploration,
-      preprocess_fn=config.preprocess_fn,
-      postprocess_fn=config.postprocess_fn)
-  stepp = graph.step
-  agent = control.mpc_agent.MPCAgent(ingraphbatchenv, stepp, False, False, agent_config)
-  donee, scoree, unused_summary = simulate_step(
-       ingraphbatchenv, agent,
-       log=False,
-       reset=tf.equal(stepp, 0))
-  print("DONEE, SCOREE", donee, scoree)
-  # donee = tf.zeros([params.num_agents], tf.bool)
-  # scoree = tf.zeros([params.num_agents], tf.float32)
+  # bind_or_none = lambda x, **kw: x and functools.partial(x, **kw)
+  # celll = graph.cell
+  # agent_config = tools.AttrDict(
+  #     cell=celll,
+  #     encoder=graph.encoder,
+  #     planner=functools.partial(params.planner, graph=graph),
+  #     objective=bind_or_none(params.objective, graph=graph),
+  #     exploration=params.exploration,
+  #     preprocess_fn=config.preprocess_fn,
+  #     postprocess_fn=config.postprocess_fn)
+  # stepp = graph.step
+  # agent = control.mpc_agent.MPCAgent(ingraphbatchenv, stepp, False, False, agent_config)
+  # donee, scoree, unused_summary = simulate_step(
+  #      ingraphbatchenv, agent,
+  #      log=False,
+  #      reset=tf.equal(stepp, 0))
+  # print("DONEE, SCOREE", donee, scoree)
+  donee = tf.zeros([params.num_agents], tf.bool)
+  scoree = tf.zeros([params.num_agents], tf.float32)
 
 
   # outside_summary = None

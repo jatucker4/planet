@@ -72,7 +72,7 @@ def dummy(config, params):
   max_length = 50 // action_repeat
   state_components = ['reward']
   env_ctor = tools.bind(
-      _flexible_control_env, control.DummyEnv(), action_repeat, max_length,
+      _flexible_control_env, control.DummyEnvClient(), action_repeat, max_length,
       params)
   return Task('dummy', env_ctor, max_length, state_components)
 
