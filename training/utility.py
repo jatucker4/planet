@@ -88,8 +88,8 @@ def load_config(logdir):
     Configuration object.
   """
   config_path = logdir and os.path.join(logdir, 'config.yaml')
-  print("CONFIG PATH", logdir, os.path.join(logdir, 'config.yaml'))
-  print("CONFIG PATH", tf.gfile.Exists(config_path))
+  #print("CONFIG PATH", logdir, os.path.join(logdir, 'config.yaml'))
+  #print("CONFIG PATH", tf.gfile.Exists(config_path))
   if not config_path or not tf.gfile.Exists(config_path):
     message = (
         'Cannot resume an existing run since the logging directory does not '
@@ -156,12 +156,12 @@ def train(model_fn, datasets, logdir, config):
     raise KeyError('You must specify a configuration.')
   logdir = logdir and os.path.expanduser(logdir)
   try:
-    print("\n\n LOGDIR", logdir, "\n\n")
+    #print("\n\n LOGDIR", logdir, "\n\n")
     config = load_config(logdir)
   except RuntimeError:
     print('Failed to load existing config.')
   except IOError:
-    print("\n\n SAVE CONFIG \n\n")
+    #print("\n\n SAVE CONFIG \n\n")
     config = save_config(config, logdir)
   trainer = trainer_.Trainer(logdir, config=config)
   cleanups = []
@@ -281,16 +281,19 @@ def apply_optimizers(objectives, trainer, config):
     grad_norms[ob.name] = grad_norm
   return summaries, grad_norms
 
+# def simulate_episodes(
+#     config, params, graph, cleanups, expensive_summaries, gif_summary, name):
 def simulate_episodes(
-    config, params, graph, cleanups, expensive_summaries, gif_summary, name):
+    config, params, graph, cleanups, expensive_summaries, gif_summary, name, batchenv,
+    donee, scoree):
   def env_ctor():
     env = params.task.env_ctor()
     print("INSIDE SIMULATE EPISODES", env)
     if params.save_episode_dir:
-      #env = control.wrappers.CollectGymDataset(env, params.save_episode_dir)
-      env = control.wrappers.CollectGymDataset.get_my_env(env, params.save_episode_dir)
-    #env = control.wrappers.ConcatObservation(env, ['image'])
-    env = control.wrappers.ConcatObservation.get_my_env(env, ['image'])
+      env = control.wrappers.CollectGymDataset(env, params.save_episode_dir)
+      #env = control.wrappers.CollectGymDataset.get_my_env(env, params.save_episode_dir)
+    env = control.wrappers.ConcatObservation(env, ['image'])
+    #env = control.wrappers.ConcatObservation.get_my_env(env, ['image'])
     return env
   bind_or_none = lambda x, **kw: x and functools.partial(x, **kw)
   cell = graph.cell
@@ -307,13 +310,18 @@ def simulate_episodes(
     params.update(agent_config)
   with agent_config.unlocked:
     agent_config.update(params)
+  # summary, return_, cleanup = control.simulate(
+  #     graph.step, env_ctor, params.task.max_length,
+  #     params.num_agents, agent_config, config.isolate_envs,
+  #     expensive_summaries, gif_summary, name=name)
   summary, return_, cleanup = control.simulate(
       graph.step, env_ctor, params.task.max_length,
       params.num_agents, agent_config, config.isolate_envs,
-      expensive_summaries, gif_summary, name=name)
+      expensive_summaries, gif_summary, name=name, batchenv=batchenv,
+      donee=donee, scoree=scoree)
   cleanups.append(cleanup)  # Work around tf.cond() tensor return type.
-  print("SUMMARY IN SIMULATE_EPISODES", summary)
-  print("RETURN IN SIMULATE EPISODES", return_)
+  # print("SUMMARY IN SIMULATE_EPISODES", summary)
+  # print("RETURN IN SIMULATE EPISODES", return_)
   return summary, return_
 
 

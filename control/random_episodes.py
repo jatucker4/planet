@@ -18,11 +18,18 @@ from __future__ import print_function
 
 from planet.control import wrappers
 
+from planet import control
 
 def random_episodes(env_ctor, num_episodes, outdir=None):
+  import tensorflow as tf
+  import numpy as np
+  
   env = env_ctor()
   env = wrappers.CollectGymDataset(env, outdir)
   #env = wrappers.CollectGymDataset.get_my_env(env, outdir)
+  # env = wrappers.ConcatObservation(env, ['image'])
+  #env = control.batch_env.BatchEnv([env], blocking=False)
+  # env = control.in_graph_batch_env.InGraphBatchEnv(env)
   episodes = [] if outdir else None
   for _ in range(num_episodes):
     policy = lambda env, obs: env.action_space.sample()
@@ -30,11 +37,16 @@ def random_episodes(env_ctor, num_episodes, outdir=None):
     obs = env.reset()
     while not done:
       action = policy(env, obs)
+      # print("ACTION", action, type(action))
       obs, _, done, info = env.step(action)
+      # obs, _, done, info = env.step([action])
+      # obs, _, done, info = env.step(np.array([action]))
+      # obs, _, done, info = env.step(tf.reshape(tf.convert_to_tensor([action]), [1, 1]))
     if outdir is None:
       episodes.append(info['episode'])
   try:
     env.close()
   except AttributeError:
     pass
+  # print("FINISHED RANDOM EPISODE COLLECTION")
   return episodes

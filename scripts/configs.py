@@ -157,10 +157,10 @@ def _tasks(config, params):
   config.isolate_envs = params.get('isolate_envs', 'thread')
   def common_spaces_ctor(task, action_spaces):
     env = task.env_ctor()
-    #env = control.wrappers.SelectObservations(env, ['image'])
-    env = control.wrappers.SelectObservations.get_my_env(env, ['image'])
-    #env = control.wrappers.PadActions(env, action_spaces)
-    env = control.wrappers.PadActions.get_my_env(env, action_spaces)
+    env = control.wrappers.SelectObservations(env, ['image'])
+    #env = control.wrappers.SelectObservations.get_my_env(env, ['image'])
+    env = control.wrappers.PadActions(env, action_spaces)
+    #env = control.wrappers.PadActions.get_my_env(env, action_spaces)
     return env
   if len(tasks) > 1:
     action_spaces = [task.env_ctor().action_space for task in tasks]

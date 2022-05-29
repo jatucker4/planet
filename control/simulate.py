@@ -32,10 +32,15 @@ from planet.tools import streaming_mean
 from planet.control.batch_env import BatchEnv
 
 
+# def simulate(
+#     step, env_ctor, duration, num_agents, agent_config,
+#     isolate_envs='none', expensive_summaries=False,
+#     gif_summary=True, name='simulate'):
 def simulate(
     step, env_ctor, duration, num_agents, agent_config,
     isolate_envs='none', expensive_summaries=False,
-    gif_summary=True, name='simulate'):
+    gif_summary=True, name='simulate', batchenv=None,
+    donee=None, scoree=None):
   summaries = []
   with tf.variable_scope(name):
     # return_, image, action, reward, cleanup = collect_rollouts(
@@ -45,11 +50,21 @@ def simulate(
     #     num_agents=num_agents,
     #     agent_config=agent_config,
     #     isolate_envs=isolate_envs)
-    return_ = 0.
-    image = 0.
-    action = 0.
-    reward = 0.
-    cleanup = lambda: None
+    return_, image, action, reward, cleanup = collect_rollouts(
+        step=step,
+        env_ctor=env_ctor,
+        duration=duration,
+        num_agents=num_agents,
+        agent_config=agent_config,
+        isolate_envs=isolate_envs,
+        batchenv=batchenv,
+        donee=donee,
+        scoree=scoree)
+    # return_ = 0.
+    # image = 0.
+    # action = 0.
+    # reward = 0.
+    # cleanup = lambda: None
     return_mean = tf.reduce_mean(return_)
     summaries.append(tf.summary.scalar('return', return_mean))
     if expensive_summaries:
@@ -58,24 +73,35 @@ def simulate(
       summaries.append(tf.summary.histogram('action_hist', action))
       summaries.append(tools.image_strip_summary(
           'image', image, max_length=duration))
-    #if gif_summary:
-    #  summaries.append(tools.gif_summary(
-    #      'animation', image, max_outputs=1, fps=20))
+    if gif_summary:
+     summaries.append(tools.gif_summary(
+         'animation', image, max_outputs=1, fps=20))
   summary = tf.summary.merge(summaries)
   return summary, return_mean, cleanup
 
 
+# def collect_rollouts(
+#     step, env_ctor, duration, num_agents, agent_config, isolate_envs):
 def collect_rollouts(
-    step, env_ctor, duration, num_agents, agent_config, isolate_envs):
-  batch_env = define_batch_env(env_ctor, num_agents, isolate_envs)
+    step, env_ctor, duration, num_agents, agent_config, isolate_envs, batchenv,
+    donee, scoree):
+  #batch_env = define_batch_env(env_ctor, num_agents, isolate_envs)
+  batch_env = batchenv
   agent = mpc_agent.MPCAgent(batch_env, step, False, False, agent_config)
+  print("INSIDE COLLECT ROLLOUTS", step)
   cleanup = lambda: batch_env.close()
 
   def simulate_fn(unused_last, step):
-    done, score, unused_summary = simulate_step(
-        batch_env, agent,
-        log=False,
-        reset=tf.equal(step, 0))
+    # done, score, unused_summary = simulate_step(
+    #    batch_env, agent,
+    #    log=False,
+    #    reset=tf.equal(step, 0))
+
+    done = donee
+    score = scoree
+
+    # done = tf.zeros([num_agents], tf.bool)
+    # score = tf.zeros([num_agents], tf.float32)
     with tf.control_dependencies([done, score]):
       image = batch_env.observ
       batch_action = batch_env.action
@@ -95,21 +121,22 @@ def collect_rollouts(
   image = tf.transpose(image, [1, 0, 2, 3, 4])
   action = tf.transpose(action, [1, 0, 2])
   reward = tf.transpose(reward)
-  return score, image, action, reward, cleanup
+  return score, image, action, reward, cleanup 
 
 
 def define_batch_env(env_ctor, num_agents, isolate_envs):
+  print("I SHOULD ONLY BE IN HERE ONCE")
   with tf.variable_scope('environments'):
     if isolate_envs == 'none':
       factory = lambda ctor: ctor()
       blocking = True
     elif isolate_envs == 'thread':
-      #factory = functools.partial(wrappers.Async, strategy='thread')
-      factory = functools.partial(wrappers.Async.get_my_env, strategy='thread')
+      factory = functools.partial(wrappers.Async, strategy='thread')
+      #factory = functools.partial(wrappers.Async.get_my_env, strategy='thread')
       blocking = False
     elif isolate_envs == 'process':
-      #factory = functools.partial(wrappers.Async, strategy='process')
-      factory = functools.partial(wrappers.Async.get_my_env, strategy='process')
+      factory = functools.partial(wrappers.Async, strategy='process')
+      #factory = functools.partial(wrappers.Async.get_my_env, strategy='process')
       blocking = False
     else:
       raise NotImplementedError(isolate_envs)
@@ -118,12 +145,12 @@ def define_batch_env(env_ctor, num_agents, isolate_envs):
     envs = [env_ctor() for _ in range(num_agents)]
     #print("ENVS", envs)
     # INSTANTIATE BATCH_ENV ONLY ONCE
-    env = BatchEnv.get_batch_env(envs, blocking)
-    #env = BatchEnv.get_batch_env(factory, env_ctor, num_agents, blocking)
-    #env = batch_env.BatchEnv(envs, blocking)
+    #env = BatchEnv.get_my_env(envs, blocking)
+    #env = BatchEnv.get_my_env(factory, env_ctor, num_agents, blocking)
+    env = batch_env.BatchEnv(envs, blocking)
     
-    #env = in_graph_batch_env.InGraphBatchEnv(env)
-    env = in_graph_batch_env.InGraphBatchEnv.get_my_env(env)
+    env = in_graph_batch_env.InGraphBatchEnv(env)
+    #env = in_graph_batch_env.InGraphBatchEnv.get_my_env(env)
     
   return env 
 
@@ -138,7 +165,7 @@ def simulate_step(batch_env, algo, log=True, reset=False):
     batch_env: In-graph batch environment.
     algo: Algorithm instance implementing required operations.
     log: Tensor indicating whether to compute and return summaries.
-    reset: Tensor causing all environments to reset.
+    reset: Tensor causing all environments to reset. 
 
   Returns:
     Tuple of tensors containing done flags for the current episodes, possibly
@@ -178,8 +205,10 @@ def simulate_step(batch_env, algo, log=True, reset=False):
     prevob = batch_env.observ + 0  # Ensure a copy of the variable value.
     agent_indices = tf.range(len(batch_env))
     action, step_summary = algo.perform(agent_indices, prevob)
+    print("INSIDE DEFINE STEP", action)
     action.set_shape(batch_env.action.shape)
     with tf.control_dependencies([batch_env.step(action)]):
+      print("SCORE VAR", score_var)
       add_score = score_var.assign_add(batch_env.reward)
       inc_length = length_var.assign_add(tf.ones(len(batch_env), tf.int32))
     with tf.control_dependencies([add_score, inc_length]):

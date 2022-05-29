@@ -188,10 +188,10 @@ def _dm_control_env(
 def _flexible_control_env(env,
     action_repeat, max_length, domain, normalize=False,
     camera_id=None):
-  #env = control.wrappers.ActionRepeat(env, action_repeat)
-  env = control.wrappers.ActionRepeat.get_my_env(env, action_repeat)
-  #env = control.wrappers.MaximumDuration(env, max_length)
-  env = control.wrappers.MaximumDuration.get_my_env(env, max_length)
+  env = control.wrappers.ActionRepeat(env, action_repeat)
+  #env = control.wrappers.ActionRepeat.get_my_env(env, action_repeat)
+  env = control.wrappers.MaximumDuration(env, max_length)
+  #env = control.wrappers.MaximumDuration.get_my_env(env, max_length)
   print(env)
   return env
 

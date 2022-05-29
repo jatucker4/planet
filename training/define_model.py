@@ -20,6 +20,10 @@ import functools
 
 import tensorflow as tf
 
+from planet import control
+from planet.control.simulate import define_batch_env
+from planet.control.simulate import simulate_step
+
 from planet import tools
 from planet.training import define_summaries
 from planet.training import utility
@@ -63,8 +67,57 @@ def define_model(data, trainer, config):
   summaries, grad_norms = utility.apply_optimizers(
       objectives, trainer, config)
 
-  outside_summary = None
-  outside_return = None
+  ## CREATE THE ENVIRONMENT AND PASS IT IN EVERYWHERE ##
+  print("CREATING THE IN GRAPH BATCH ENV")
+  def define_model_env_ctor():
+    env = params.task.env_ctor()
+    if params.save_episode_dir:
+      env = control.wrappers.CollectGymDataset(env, params.save_episode_dir)
+      #env = control.wrappers.CollectGymDataset.get_my_env(env, params.save_episode_dir)
+    env = control.wrappers.ConcatObservation(env, ['image'])
+    #env = control.wrappers.ConcatObservation.get_my_env(env, ['image'])
+    return env
+  params_list = list(config.train_collects.items())   # [(name, params)]
+  params = params_list[0][1]  # Only should be 1 element in this list
+  ingraphbatchenv = define_batch_env(define_model_env_ctor, params.num_agents, config.isolate_envs)
+  print("LOOKING AT ONION OF WRAPPERS")
+  l1 = ingraphbatchenv._batch_env
+  print(l1)
+  l2 = l1._envs
+  print(l2)  # ConcatObservation
+  l3 = l2[0]._env
+  print(l3) # CollectGymDataset
+  l4 = l3._env 
+  print(l4) # MaximumDuration
+  l5 = l4._env
+  print(l5) # ActionRepeat
+  l6 = l5._env
+  print(l6) # Stanford
+
+  ## CALL SIMULATE_STEP AND PASS THE OUTPUT EVERYWHERE ##
+  bind_or_none = lambda x, **kw: x and functools.partial(x, **kw)
+  celll = graph.cell
+  agent_config = tools.AttrDict(
+      cell=celll,
+      encoder=graph.encoder,
+      planner=functools.partial(params.planner, graph=graph),
+      objective=bind_or_none(params.objective, graph=graph),
+      exploration=params.exploration,
+      preprocess_fn=config.preprocess_fn,
+      postprocess_fn=config.postprocess_fn)
+  stepp = graph.step
+  agent = control.mpc_agent.MPCAgent(ingraphbatchenv, stepp, False, False, agent_config)
+  donee, scoree, unused_summary = simulate_step(
+       ingraphbatchenv, agent,
+       log=False,
+       reset=tf.equal(stepp, 0))
+  print("DONEE, SCOREE", donee, scoree)
+  # donee = tf.zeros([params.num_agents], tf.bool)
+  # scoree = tf.zeros([params.num_agents], tf.float32)
+
+
+  # outside_summary = None
+  # outside_return = None
   
   # Active data collection.
   with tf.variable_scope('collection'):
@@ -81,27 +134,41 @@ def define_model(data, trainer, config):
         #         expensive_summaries=False, gif_summary=False, name=name),
         #     lambda: (tf.constant(''), tf.constant(0.0)),
         #     name='should_collect_' + name)
-        ssummary, ret = tf.cond(
+        summary, _ = tf.cond(
             tf.logical_and(tf.equal(trainer.phase, 'train'), schedule),
             functools.partial(
                 utility.simulate_episodes, config, params, graph, cleanups,
-                expensive_summaries=False, gif_summary=False, name=name),
+                expensive_summaries=False, gif_summary=False, name=name, batchenv=ingraphbatchenv,
+                donee=donee, scoree=scoree),
             lambda: (tf.constant(''), tf.constant(0.0)),
             name='should_collect_' + name)
-        #summaries.append(summary)
-        summaries.append(ssummary)
+        # ssummary, ret = tf.cond(
+        #     tf.logical_and(tf.equal(trainer.phase, 'train'), schedule),
+        #     functools.partial(
+        #         utility.simulate_episodes, config, params, graph, cleanups,
+        #         expensive_summaries=False, gif_summary=False, name=name),
+        #     lambda: (tf.constant(''), tf.constant(0.0)),
+        #     name='should_collect_' + name)
+        summaries.append(summary)
+        #summaries.append(ssummary)
 
-        outside_summary = ssummary
-        outside_return = ret
+        # outside_summary = ssummary
+        # outside_return = ret
 
-  print("SSUMARY, RET", outside_summary, outside_return)
+  # print("SSUMARY, RET", outside_summary, outside_return)
 
   # Compute summaries.
   graph = tools.AttrDict(locals())
   print("trainer.log", trainer.log)
+  # summary, score = tf.cond(
+  #     trainer.log,
+  #     lambda: define_summaries.define_summaries(graph, config, cleanups),
+  #     lambda: (tf.constant(''), tf.zeros((0,), tf.float32)),
+  #     name='summaries')
   summary, score = tf.cond(
       trainer.log,
-      lambda: define_summaries.define_summaries(graph, config, cleanups),
+      lambda: define_summaries.define_summaries(graph, config, cleanups, batchenv=ingraphbatchenv,
+                                                donee=donee, scoree=scoree),
       lambda: (tf.constant(''), tf.zeros((0,), tf.float32)),
       name='summaries')
   summaries = tf.summary.merge([summaries, summary])

@@ -77,8 +77,8 @@ class BatchEnv(object):
   #     raise ValueError('All environments must use the same observation space.')
   
   @classmethod
-  def get_batch_env(cls, envs, blocking):
-  #def get_batch_env(cls, factory, env_ctor, num_agents, blocking):
+  def get_my_env(cls, envs, blocking):
+  #def get_my_env(cls, factory, env_ctor, num_agents, blocking):
     """
     Used to instantiate a BatchEnv object. Ensures that only one BatchEnv
     object ever exists.
@@ -124,6 +124,7 @@ class BatchEnv(object):
     """
     for index, (env, action) in enumerate(zip(self._envs, actions)):
       if not env.action_space.contains(action):
+        print("ENV ACTION SPACE", env.action_space)
         message = 'Invalid action at index {}: {}'
         raise ValueError(message.format(index, action))
     if self._blocking:
@@ -138,7 +139,7 @@ class BatchEnv(object):
       transitions = [
           env.step(action)
           for env, action in zip(self._envs, actions)]
-      transitions = [transition() for transition in transitions]
+      #transitions = [transition() for transition in transitions]
     observs, rewards, dones, infos = zip(*transitions)
     observ = np.stack(observs)
     reward = np.stack(rewards).astype(np.float32)
@@ -162,9 +163,10 @@ class BatchEnv(object):
     else:
       print("\nGoing to enter env.reset now\n")
       print(self._envs)
-      #observs = [self._envs[index].reset(blocking=False) for index in indices]
+      # observs = [self._envs[index].reset(blocking=False) for index in indices]
       observs = [self._envs[index].reset() for index in indices]
-      observs = [observ() for observ in observs]
+      #print("OBSERVS", observs)
+      #observs = [observ() for observ in observs]
     observ = np.stack(observs)
     return observ
 
