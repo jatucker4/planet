@@ -17,9 +17,19 @@ from __future__ import division
 from __future__ import print_function
 
 import gym
+import json
 import numpy as np
-
+import pickle
+import zlib
 import zmq
+
+from collections import OrderedDict
+
+context = zmq.Context()
+#  Socket to talk to server
+print("Connecting to dummy env server…")
+socket = context.socket(zmq.REQ)
+socket.connect("tcp://localhost:5555")
 
 class DummyEnvClient(object):
 
@@ -43,14 +53,37 @@ class DummyEnvClient(object):
 
   def reset(self):
     self._step = 0
-    obs = self.observation_space.sample()
+    # obs = self.observation_space.sample()
+    obs = self.get_observation()
     return obs
 
   def step(self, action):
-    obs = self.observation_space.sample()
+    # obs = self.observation_space.sample()
+    obs = self.get_observation()
     reward = self._random.uniform(0, 1)
     self._step += 1
     #done = self._step >= 1000
     done = self._step >= 50
     info = {}
     return obs, reward, done, info
+  
+  def get_observation(self):
+    print("Sending request")
+    socket.send(b"Hello")
+
+    #  Get the reply.
+    flags=0
+    copy=True
+    track=False
+    """recv a numpy array"""
+    md = socket.recv_json(flags=flags)
+    msg = socket.recv(flags=flags, copy=copy, track=track)
+    buf = memoryview(msg)
+    a = np.frombuffer(buf, dtype=md['dtype'])
+    obs = a.reshape(md['shape'])
+    #print(obs)
+
+    obs_dict = OrderedDict()
+    obs_dict['image'] = obs
+
+    return obs_dict

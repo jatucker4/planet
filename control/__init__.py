@@ -19,6 +19,7 @@ from __future__ import print_function
 from . import planning
 from .batch_env import BatchEnv
 from .dummy_env import DummyEnv
+from .dummy_env_client import DummyEnvClient
 from .floor_env import FloorEnv
 from .stanford import StanfordEnvironment
 from .intermediate_dummy_env import IntermediateDummyEnv

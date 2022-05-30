@@ -4,6 +4,7 @@
 #   Sends "Hello" to server, expects "World" back
 #
 
+import json
 import numpy as np
 import pickle
 import zlib
@@ -22,23 +23,23 @@ for request in range(10):
     socket.send(b"Hello")
 
     #  Get the reply.
-    message = socket.recv()
-    print("Received reply %s [ %s ]" % (request, message))
-    print(float(message[3]))
+    # message = socket.recv()
+    # print("Received reply %s [ %s ]" % (request, message))
     #print(np.fromstring(message))
     #print(float(message))
 
-    # flags=0
-    # copy=True
-    # track=False
-    # """recv a numpy array"""
-    # #md = socket.recv_json(flags=flags)
-    # msg = socket.recv(flags=flags, copy=copy, track=track)
-    # buf = memoryview(msg)
-    # # a = np.frombuffer(buf, dtype=md['dtype'])
-    # a = np.frombuffer(buf, dtype='float')
-    # # print(a.reshape(md['shape']))
-    # print(a.reshape((1, 2)))
+    flags=0
+    copy=True
+    track=False
+    """recv a numpy array"""
+    md = socket.recv_json(flags=flags)
+    msg = socket.recv(flags=flags, copy=copy, track=track)
+    buf = memoryview(msg)
+    a = np.frombuffer(buf, dtype=md['dtype'])
+    #a = np.frombuffer(buf, dtype='float')
+    print(a.reshape(md['shape']))
+    #print(a.reshape((1, 2)))
+    print(md['arr2'], md['arr2'] == np.ndarray.tolist(a))
 
     # flags=0
     # protocol=-1
