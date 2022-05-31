@@ -23,6 +23,7 @@ from .dummy_env_client import DummyEnvClient
 from .floor_env import FloorEnv
 from .stanford import StanfordEnvironment
 from .intermediate_dummy_env import IntermediateDummyEnv
+from .intermediate_dummy_env_client import IntermediateDummyEnvClient
 from .in_graph_batch_env import InGraphBatchEnv
 from .mpc_agent import MPCAgent
 from .random_episodes import random_episodes

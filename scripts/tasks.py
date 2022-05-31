@@ -54,7 +54,7 @@ def intermediate_dummy(config, params):
   max_length = 50 // action_repeat
   state_components = ['reward']
   env_ctor = tools.bind(
-      _flexible_control_env, control.IntermediateDummyEnv(), action_repeat, max_length,
+      _flexible_control_env, control.IntermediateDummyEnvClient(), action_repeat, max_length,
       params)
   return Task('intermediate_dummy', env_ctor, max_length, state_components)
 
