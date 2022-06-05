@@ -68,7 +68,7 @@ def define_model(data, trainer, config):
       objectives, trainer, config)
 
   ## CREATE THE ENVIRONMENT AND PASS IT IN EVERYWHERE ##
-  print("CREATING THE IN GRAPH BATCH ENV")
+  #print("CREATING THE IN GRAPH BATCH ENV")
   def define_model_env_ctor():
     env = params.task.env_ctor()
     if params.save_episode_dir:
@@ -80,19 +80,19 @@ def define_model(data, trainer, config):
   params_list = list(config.train_collects.items())   # [(name, params)]
   params = params_list[0][1]  # Only should be 1 element in this list
   ingraphbatchenv = define_batch_env(define_model_env_ctor, params.num_agents, config.isolate_envs)
-  print("LOOKING AT ONION OF WRAPPERS")
+  #print("LOOKING AT ONION OF WRAPPERS")
   l1 = ingraphbatchenv._batch_env
-  print(l1)
+  #print(l1)
   l2 = l1._envs
-  print(l2)  # ConcatObservation
+  #print(l2)  # ConcatObservation
   l3 = l2[0]._env
-  print(l3) # CollectGymDataset
+  #print(l3) # CollectGymDataset
   l4 = l3._env 
-  print(l4) # MaximumDuration
+  #print(l4) # MaximumDuration
   l5 = l4._env
-  print(l5) # ActionRepeat
+  #print(l5) # ActionRepeat
   l6 = l5._env
-  print(l6) # Stanford
+  #print(l6) # Stanford
 
   ## CALL SIMULATE_STEP AND PASS THE OUTPUT EVERYWHERE ##
   # bind_or_none = lambda x, **kw: x and functools.partial(x, **kw)

@@ -8,6 +8,8 @@ import gym
 import zlib
 import zmq 
 
+import matplotlib.pyplot as plt
+
 from collections import OrderedDict
 from planet.control.abstract import AbstractEnvironment
 
@@ -63,10 +65,6 @@ class StanfordEnvironmentClient(AbstractEnvironment):
     def __init__(self, disc_thetas=False):
         print("CREATING STANFORD ENV CLIENT - SHOULD ONLY BE HERE ONCE")
 
-        #p = create_params()
-        #self.renderer = HumANavRenderer.get_renderer(p)
-
-        #self.done = False
         self._step = None
         self.reached_goal = False
         self.true_env_corner = [24.0, 23.0] 
@@ -98,6 +96,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             traversible = pickle.load(open("traversible.p", "rb"))
             dx_m = 0.05
         except Exception:
+            # TODO: Deprecated code!
             path = os.getcwd() + '/temp/'
             os.mkdir(path)
             _, _, traversible, dx_m = self.get_observation(path=path)
@@ -159,8 +158,6 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             test_trap = (first_test_trap_x and first_test_trap_y) or \
                         (second_test_trap_x and second_test_trap_y)
 
-            # test_trap = test_trap_x and (state[1] >= self.test_trap_y[0] and state[1] <= self.test_trap_y[1])
-            
             return (trap or test_trap) and not self.in_goal(state)
         
         return trap and not self.in_goal(state) 
@@ -173,8 +170,6 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
     @property
     def observation_space(self):  ## TODO Include pixel wrapper and don't normalize
-        # low = np.ones([64, 64, 3], dtype=np.float32)*-10
-        # high = np.ones([64, 64, 3], dtype=np.float32)*10
         low = np.zeros([64, 64, 3], dtype=np.float32)
         high = np.ones([64, 64, 3], dtype=np.float32)
         spaces = {'image': gym.spaces.Box(low, high)}
@@ -188,13 +183,9 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         self.test_trap = True
         self.test_trap_is_random = test_trap_is_random
 
-    # def reset(self):
-    #     self._step = 0
-    #     obs = self.observation_space.sample()
-    #     return obs
-
     def reset(self, random_obs=False):
-        #self.done = False
+        # random_obs = True only for debugging purposes
+
         self.reached_goal = False
         self._step = 0
         self.state, self.orientation = self.initial_state()
@@ -219,30 +210,15 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             obs = self.observation_space.sample()
         else:
             normalization_data = self.preprocess_data()
-            #print("Segfault is after this")
-            #obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
             obs_nav = self.get_observation(normalization_data=normalization_data)
-            #print("Segfault is before this")
             obs = OrderedDict()        
             obs['image'] = obs_nav
 
         return obs
-    
-    # def step(self, action):
-    #     obs = self.observation_space.sample()
-    #     # reward = self._random.uniform(0, 1)
-    #     reward = np.random.uniform(0, 1)
-    #     self._step += 1
-    #     #done = self._step >= 1000
-    #     done = self._step >= 10
-    #     #done = self._step >= 200
-    #     info = {}
-    #     return obs, reward, done, info
 
     def step(self, action, random_obs=False, action_is_vector=False):
+        # random_obs = True only for debugging purposes
         episode_length = 50
-
-        #self.done = False
         curr_state = self.state
 
         # Get the observation at the current state to provide PlaNet the expected output
@@ -250,7 +226,6 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             obs = self.observation_space.sample()
         else:
             normalization_data = self.preprocess_data()
-            # obs_nav, _, _, _ = self.get_observation(normalization_data=normalization_data)
             obs_nav = self.get_observation(normalization_data=normalization_data)
             obs = OrderedDict()        
             obs['image'] = obs_nav
@@ -282,7 +257,6 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             elif cond_hit == False:  # If collided, don't move. Else move.
                 self.state = next_state
                 self.orientation = new_theta
-        #reward = sep.epi_reward * self.done
 
         # If we just reached the goal, collect reward
         # But if we already reached the goal previously, get reward 0
@@ -322,9 +296,6 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             return True
 
         # Check if state y-value is the same as trap/goal but it's not in the trap or goal - that's a wall
-        # if self.in_trap([self.trap_x[0][0], state[1]]) and \
-        #     not self.in_trap(state) and not self.in_goal(state):
-        #     return True
         if (state[1] >= self.trap_y[0] and state[1] <= self.trap_y[1]) and \
             not self.in_trap(state) and not self.in_goal(state):
             return True
@@ -334,8 +305,10 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         collided = (map_value == 0)
         return collided
 
-    def send_request(self, state_arr):  
-        print("Sending request")
+    def send_request(self, state_arr, visualize=False): 
+        # Send request to the stanford server to get the observation
+
+        print("Sending request for state", state_arr)
         # Send the state as a numpy array
         flags=0
         copy=True
@@ -358,11 +331,17 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         buf = memoryview(msg)
         a = np.frombuffer(buf, dtype=md['dtype'])
         obs = a.reshape(md['shape'])
-        print(obs)
+        print("Received observation")
+
+        if visualize:
+            # Plot the RGB Image
+            fig = plt.figure()
+            plt.imshow(obs)
+            fig.savefig("RECEIVED_OBS.png", bbox_inches='tight', pad_inches=0)
 
         return obs
 
-    def get_observation(self, state=None, normalize=True, normalization_data=None, occlusion=False):
+    def get_observation(self, state=None, visualize=False, normalization_data=None, occlusion=False):
         if state == None:
             state_temp = self.state
             #print("SELF.STATE", self.state)
@@ -373,13 +352,6 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             state = state + self.true_env_corner
             state_arr = np.array([state])
 
-        #path = os.getcwd() + '/images/' 
-        #os.mkdir(path)
-        #check_path(path)
-
-        # img_path, traversible, dx_m = generate_observation(state_arr, path)
-        #image = cv2.imread(img_path, cv2.IMREAD_COLOR)
-
         image = self.send_request(state_arr)
         
         if occlusion:
@@ -387,23 +359,23 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         else:
             out = self.noise_image_plane(image, state_temp)
 
-        out = out[:, :, ::-1]  ## CV2 works in BGR space instead of RGB!! So dumb! --- now image is in RGB
         out = np.ascontiguousarray(out)
 
-        if normalize:
-            rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
-            img_rslice = (out[:, :, 0] - rmean)/rstd
-            img_gslice = (out[:, :, 1] - gmean)/gstd
-            img_bslice = (out[:, :, 2] - bmean)/bstd
+        if visualize:
+            # Plot the RGB Image
+            fig = plt.figure()
+            plt.imshow(out)
+            fig.savefig("NOISY_RECEIVED_OBS.png", bbox_inches='tight', pad_inches=0)
 
-            out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
+        rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
+        img_rslice = (out[:, :, 0] - rmean)/rstd
+        img_gslice = (out[:, :, 1] - gmean)/gstd
+        img_bslice = (out[:, :, 2] - bmean)/bstd
 
-            #out = (out - out.mean())/out.std()  # "Normalization" -- TODO
+        out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
 
-        #os.remove(img_path)
-        #os.rmdir(path)
+        #out = (out - out.mean())/out.std()  # "Normalization" -- TODO
 
-        #return out, img_path, traversible, dx_m
         #return out 
         return np.ndarray.astype(out, np.float32)
 

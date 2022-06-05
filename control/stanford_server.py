@@ -27,12 +27,7 @@ while True:
     buf = memoryview(msg)
     state_arr = np.frombuffer(buf, dtype=md['dtype'])
     state_arr = state_arr.reshape(md['shape'])
-    print("Received request", state_arr)
-    #print(obs)
-
-    #img_path, traversible, dx_m = generate_observation(state_arr, path)
-    # socket.send_string(img_path)
-    
+    print("Received request for state", state_arr)
     
     #  Send reply back to client
     img = generate_observation_retimg(state_arr)

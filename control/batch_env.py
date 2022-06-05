@@ -42,7 +42,7 @@ class BatchEnv(object):
       ValueError: Environments have different observation or action spaces.
     """
     self._envs = envs
-    print("\nI got here, here are the envs!", self._envs, blocking, "\n")
+    #print("\nI got here, here are the envs!", self._envs, blocking, "\n")
     self._blocking = blocking
     observ_space = self._envs[0].observation_space
     if not all(env.observation_space == observ_space for env in self._envs):
@@ -124,7 +124,7 @@ class BatchEnv(object):
     """
     for index, (env, action) in enumerate(zip(self._envs, actions)):
       if not env.action_space.contains(action):
-        print("ENV ACTION SPACE", env.action_space)
+        #print("ENV ACTION SPACE", env.action_space)
         message = 'Invalid action at index {}: {}'
         raise ValueError(message.format(index, action))
     if self._blocking:
@@ -162,7 +162,7 @@ class BatchEnv(object):
       observs = [self._envs[index].reset() for index in indices]
     else:
       print("\nGoing to enter env.reset now\n")
-      print(self._envs)
+      #print(self._envs)
       # observs = [self._envs[index].reset(blocking=False) for index in indices]
       observs = [self._envs[index].reset() for index in indices]
       #print("OBSERVS", observs)

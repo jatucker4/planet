@@ -39,7 +39,7 @@ class InGraphBatchEnv(object):
     Args:
       batch_env: Batch environment.
     """
-    print("MAKING a InGraphBatchEnv!")
+    #print("MAKING a InGraphBatchEnv!")
     self._batch_env = batch_env
     batch_dims = (len(self._batch_env),)
     observ_shape = self._parse_shape(self._batch_env.observation_space)
@@ -111,7 +111,7 @@ class InGraphBatchEnv(object):
           lambda a: self._batch_env.step(a)[:3], [action],
           [observ_dtype, tf.float32, tf.bool], name='step')
       # reward = tf.cast(reward, tf.float32)
-      print("SHAPES", action.shape, self._action.shape)
+      #print("SHAPES", action.shape, self._action.shape)
       return tf.group(
           self._observ.assign(observ),
           self._action.assign(action),

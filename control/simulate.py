@@ -88,7 +88,7 @@ def collect_rollouts(
   #batch_env = define_batch_env(env_ctor, num_agents, isolate_envs)
   batch_env = batchenv
   agent = mpc_agent.MPCAgent(batch_env, step, False, False, agent_config)
-  print("INSIDE COLLECT ROLLOUTS", step)
+  #print("INSIDE COLLECT ROLLOUTS", step)
   cleanup = lambda: batch_env.close()
 
   def simulate_fn(unused_last, step):
@@ -125,7 +125,7 @@ def collect_rollouts(
 
 
 def define_batch_env(env_ctor, num_agents, isolate_envs):
-  print("I SHOULD ONLY BE IN HERE ONCE")
+  #print("I SHOULD ONLY BE IN HERE ONCE")
   with tf.variable_scope('environments'):
     if isolate_envs == 'none':
       factory = lambda ctor: ctor()
@@ -205,10 +205,10 @@ def simulate_step(batch_env, algo, log=True, reset=False):
     prevob = batch_env.observ + 0  # Ensure a copy of the variable value.
     agent_indices = tf.range(len(batch_env))
     action, step_summary = algo.perform(agent_indices, prevob)
-    print("INSIDE DEFINE STEP", action)
+    #print("INSIDE DEFINE STEP", action)
     action.set_shape(batch_env.action.shape)
     with tf.control_dependencies([batch_env.step(action)]):
-      print("SCORE VAR", score_var)
+      #print("SCORE VAR", score_var)
       add_score = score_var.assign_add(batch_env.reward)
       inc_length = length_var.assign_add(tf.ones(len(batch_env), tf.int32))
     with tf.control_dependencies([add_score, inc_length]):

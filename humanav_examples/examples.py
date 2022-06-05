@@ -90,10 +90,8 @@ def plot_rgb(rgb_image_1mk3, filename):
 
 def plot_rgb_retimg(rgb_image_1mk3):
     import cv2
-    #fig = plt.figure(figsize=(30, 10))
 
     src = rgb_image_1mk3[0].astype(np.uint8)
-    src = src[:,:,::-1]   ## CV2 works in BGR space instead of RGB!! So dumb!
     #percent by which the image is resized
     scale_percent = (64./src.shape[0]) * 100
 
@@ -306,10 +304,6 @@ def generate_observation_retimg(camera_pos_13):
 
     rgb_image_1mk3, depth_image_1mk1 = render_rgb_and_depth(r, camera_pos_13, dx_m, human_visible=False)
 
-    camera_pos_str = '_' + str(camera_pos_13[0][0]) + '_' + str(camera_pos_13[0][1]) + '_' + str(camera_pos_13[0][2])
-    filename_rgb = 'rgb' + camera_pos_str + '.png'
-
-    # Plot the rendered images
     return plot_rgb_retimg(rgb_image_1mk3)
 
 
