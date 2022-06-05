@@ -67,6 +67,7 @@ def define_model(data, trainer, config):
   summaries, grad_norms = utility.apply_optimizers(
       objectives, trainer, config)
 
+  '''
   ## CREATE THE ENVIRONMENT AND PASS IT IN EVERYWHERE ##
   #print("CREATING THE IN GRAPH BATCH ENV")
   def define_model_env_ctor():
@@ -114,10 +115,11 @@ def define_model(data, trainer, config):
   # print("DONEE, SCOREE", donee, scoree)
   donee = tf.zeros([params.num_agents], tf.bool)
   scoree = tf.zeros([params.num_agents], tf.float32)
-
+  
 
   # outside_summary = None
   # outside_return = None
+  '''
   
   # Active data collection.
   with tf.variable_scope('collection'):
@@ -127,21 +129,21 @@ def define_model(data, trainer, config):
         schedule = tools.schedule.binary(
             step, config.batch_shape[0],
             params.steps_after, params.steps_every, params.steps_until)
-        # summary, _ = tf.cond(
-        #     tf.logical_and(tf.equal(trainer.phase, 'train'), schedule),
-        #     functools.partial(
-        #         utility.simulate_episodes, config, params, graph, cleanups,
-        #         expensive_summaries=False, gif_summary=False, name=name),
-        #     lambda: (tf.constant(''), tf.constant(0.0)),
-        #     name='should_collect_' + name)
         summary, _ = tf.cond(
             tf.logical_and(tf.equal(trainer.phase, 'train'), schedule),
             functools.partial(
                 utility.simulate_episodes, config, params, graph, cleanups,
-                expensive_summaries=False, gif_summary=False, name=name, batchenv=ingraphbatchenv,
-                donee=donee, scoree=scoree),
+                expensive_summaries=False, gif_summary=False, name=name),
             lambda: (tf.constant(''), tf.constant(0.0)),
             name='should_collect_' + name)
+        # summary, _ = tf.cond(
+        #     tf.logical_and(tf.equal(trainer.phase, 'train'), schedule),
+        #     functools.partial(
+        #         utility.simulate_episodes, config, params, graph, cleanups,
+        #         expensive_summaries=False, gif_summary=False, name=name, batchenv=ingraphbatchenv,
+        #         donee=donee, scoree=scoree),
+        #     lambda: (tf.constant(''), tf.constant(0.0)),
+        #     name='should_collect_' + name)
         # ssummary, ret = tf.cond(
         #     tf.logical_and(tf.equal(trainer.phase, 'train'), schedule),
         #     functools.partial(
@@ -160,17 +162,17 @@ def define_model(data, trainer, config):
   # Compute summaries.
   graph = tools.AttrDict(locals())
   print("trainer.log", trainer.log)
-  # summary, score = tf.cond(
-  #     trainer.log,
-  #     lambda: define_summaries.define_summaries(graph, config, cleanups),
-  #     lambda: (tf.constant(''), tf.zeros((0,), tf.float32)),
-  #     name='summaries')
   summary, score = tf.cond(
       trainer.log,
-      lambda: define_summaries.define_summaries(graph, config, cleanups, batchenv=ingraphbatchenv,
-                                                donee=donee, scoree=scoree),
+      lambda: define_summaries.define_summaries(graph, config, cleanups),
       lambda: (tf.constant(''), tf.zeros((0,), tf.float32)),
       name='summaries')
+  # summary, score = tf.cond(
+  #     trainer.log,
+  #     lambda: define_summaries.define_summaries(graph, config, cleanups, batchenv=ingraphbatchenv,
+  #                                               donee=donee, scoree=scoree),
+  #     lambda: (tf.constant(''), tf.zeros((0,), tf.float32)),
+  #     name='summaries')
   summaries = tf.summary.merge([summaries, summary])
   dependencies.append(utility.print_metrics(
       {ob.name: ob.value for ob in objectives},

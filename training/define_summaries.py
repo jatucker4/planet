@@ -24,9 +24,9 @@ from planet.training import utility
 from planet.tools import summary
 
 
-#def define_summaries(graph, config, cleanups):
+def define_summaries(graph, config, cleanups):
 #def define_summaries(graph, config, cleanups, created_env=None):
-def define_summaries(graph, config, cleanups, batchenv, donee, scoree):
+# def define_summaries(graph, config, cleanups, batchenv, donee, scoree):
   summaries = []
   plot_summaries = []  # Control dependencies for non thread-safe matplot.
   length = graph.data['length']
@@ -104,19 +104,19 @@ def define_summaries(graph, config, cleanups, batchenv, donee, scoree):
       # do one of them.
       sim_summary, sim_return = tf.cond(
           tf.equal(graph.phase, 'test'),
-          # lambda: utility.simulate_episodes(
-          #     config, params, graph, cleanups,
-          #     expensive_summaries=False,
-          #     gif_summary=True,
-          #     name=name),
           lambda: utility.simulate_episodes(
               config, params, graph, cleanups,
               expensive_summaries=False,
               gif_summary=True,
-              name=name,
-              batchenv=batchenv,
-              donee=donee,
-              scoree=scoree),
+              name=name),
+          # lambda: utility.simulate_episodes(
+          #     config, params, graph, cleanups,
+          #     expensive_summaries=False,
+          #     gif_summary=True,
+          #     name=name,
+          #     batchenv=batchenv,
+          #     donee=donee,
+          #     scoree=scoree),
           lambda: ('', 0.0),
           name='should_simulate_' + params.task.name)
       summaries.append(sim_summary)

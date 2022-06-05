@@ -133,13 +133,13 @@ class BatchEnv(object):
           for env, action in zip(self._envs, actions)]
     else:
       print("\nGoing to enter env.step now\n")
-      # transitions = [
-      #     env.step(action, blocking=False)
-      #     for env, action in zip(self._envs, actions)]
       transitions = [
-          env.step(action)
+          env.step(action, blocking=False)
           for env, action in zip(self._envs, actions)]
-      #transitions = [transition() for transition in transitions]
+      # transitions = [
+      #     env.step(action)
+      #     for env, action in zip(self._envs, actions)]
+      transitions = [transition() for transition in transitions]
     observs, rewards, dones, infos = zip(*transitions)
     observ = np.stack(observs)
     reward = np.stack(rewards).astype(np.float32)
@@ -163,10 +163,10 @@ class BatchEnv(object):
     else:
       print("\nGoing to enter env.reset now\n")
       #print(self._envs)
-      # observs = [self._envs[index].reset(blocking=False) for index in indices]
-      observs = [self._envs[index].reset() for index in indices]
+      observs = [self._envs[index].reset(blocking=False) for index in indices]
+      #observs = [self._envs[index].reset() for index in indices]
       #print("OBSERVS", observs)
-      #observs = [observ() for observ in observs]
+      observs = [observ() for observ in observs]
     observ = np.stack(observs)
     return observ
 

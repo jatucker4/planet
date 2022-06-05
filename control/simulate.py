@@ -32,34 +32,34 @@ from planet.tools import streaming_mean
 from planet.control.batch_env import BatchEnv
 
 
-# def simulate(
-#     step, env_ctor, duration, num_agents, agent_config,
-#     isolate_envs='none', expensive_summaries=False,
-#     gif_summary=True, name='simulate'):
 def simulate(
     step, env_ctor, duration, num_agents, agent_config,
     isolate_envs='none', expensive_summaries=False,
-    gif_summary=True, name='simulate', batchenv=None,
-    donee=None, scoree=None):
+    gif_summary=True, name='simulate'):
+# def simulate(
+#     step, env_ctor, duration, num_agents, agent_config,
+#     isolate_envs='none', expensive_summaries=False,
+#     gif_summary=True, name='simulate', batchenv=None,
+#     donee=None, scoree=None):
   summaries = []
   with tf.variable_scope(name):
-    # return_, image, action, reward, cleanup = collect_rollouts(
-    #     step=step,
-    #     env_ctor=env_ctor,
-    #     duration=duration,
-    #     num_agents=num_agents,
-    #     agent_config=agent_config,
-    #     isolate_envs=isolate_envs)
     return_, image, action, reward, cleanup = collect_rollouts(
         step=step,
         env_ctor=env_ctor,
         duration=duration,
         num_agents=num_agents,
         agent_config=agent_config,
-        isolate_envs=isolate_envs,
-        batchenv=batchenv,
-        donee=donee,
-        scoree=scoree)
+        isolate_envs=isolate_envs)
+    # return_, image, action, reward, cleanup = collect_rollouts(
+    #     step=step,
+    #     env_ctor=env_ctor,
+    #     duration=duration,
+    #     num_agents=num_agents,
+    #     agent_config=agent_config,
+    #     isolate_envs=isolate_envs,
+    #     batchenv=batchenv,
+    #     donee=donee,
+    #     scoree=scoree)
     # return_ = 0.
     # image = 0.
     # action = 0.
@@ -80,13 +80,13 @@ def simulate(
   return summary, return_mean, cleanup
 
 
-# def collect_rollouts(
-#     step, env_ctor, duration, num_agents, agent_config, isolate_envs):
 def collect_rollouts(
-    step, env_ctor, duration, num_agents, agent_config, isolate_envs, batchenv,
-    donee, scoree):
-  #batch_env = define_batch_env(env_ctor, num_agents, isolate_envs)
-  batch_env = batchenv
+    step, env_ctor, duration, num_agents, agent_config, isolate_envs):
+# def collect_rollouts(
+#     step, env_ctor, duration, num_agents, agent_config, isolate_envs, batchenv,
+#     donee, scoree):
+  batch_env = define_batch_env(env_ctor, num_agents, isolate_envs)
+  #batch_env = batchenv
   agent = mpc_agent.MPCAgent(batch_env, step, False, False, agent_config)
   #print("INSIDE COLLECT ROLLOUTS", step)
   cleanup = lambda: batch_env.close()
@@ -140,11 +140,9 @@ def define_batch_env(env_ctor, num_agents, isolate_envs):
       blocking = False
     else:
       raise NotImplementedError(isolate_envs)
-    #print("ENV_CTOR", env_ctor)
-    #envs = [factory(env_ctor) for _ in range(num_agents)]
-    envs = [env_ctor() for _ in range(num_agents)]
-    #print("ENVS", envs)
-    # INSTANTIATE BATCH_ENV ONLY ONCE
+    envs = [factory(env_ctor) for _ in range(num_agents)]
+    #envs = [env_ctor() for _ in range(num_agents)]
+
     #env = BatchEnv.get_my_env(envs, blocking)
     #env = BatchEnv.get_my_env(factory, env_ctor, num_agents, blocking)
     env = batch_env.BatchEnv(envs, blocking)
