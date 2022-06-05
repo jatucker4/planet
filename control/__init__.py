@@ -22,6 +22,7 @@ from .dummy_env import DummyEnv
 from .dummy_env_client import DummyEnvClient
 from .floor_env import FloorEnv
 from .stanford import StanfordEnvironment
+from .stanford_client import StanfordEnvironmentClient
 from .intermediate_dummy_env import IntermediateDummyEnv
 from .intermediate_dummy_env_client import IntermediateDummyEnvClient
 from .in_graph_batch_env import InGraphBatchEnv

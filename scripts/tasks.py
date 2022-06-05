@@ -44,7 +44,7 @@ def stanford(config, params):
   max_length = 50 // action_repeat
   state_components = ['reward']
   env_ctor = tools.bind(
-      _flexible_control_env, control.StanfordEnvironment(), action_repeat, max_length,
+      _flexible_control_env, control.StanfordEnvironmentClient(), action_repeat, max_length,
       params)
   return Task('stanford', env_ctor, max_length, state_components)
 

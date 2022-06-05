@@ -88,6 +88,26 @@ def plot_rgb(rgb_image_1mk3, filename):
     
     #fig.savefig(filename, bbox_inches='tight', pad_inches=0)
 
+def plot_rgb_retimg(rgb_image_1mk3):
+    import cv2
+    #fig = plt.figure(figsize=(30, 10))
+
+    src = rgb_image_1mk3[0].astype(np.uint8)
+    src = src[:,:,::-1]   ## CV2 works in BGR space instead of RGB!! So dumb!
+    #percent by which the image is resized
+    scale_percent = (64./src.shape[0]) * 100
+
+    width = int(src.shape[1] * scale_percent / 100)
+    height = int(src.shape[0] * scale_percent / 100)
+
+    # dsize
+    dsize = (width, height)
+
+    # resize image
+    output = cv2.resize(src, dsize)
+
+    return output 
+
 
 def plot_images(rgb_image_1mk3, depth_image_1mk1, traversible, dx_m,
                 camera_pos_13, human_pos_3, filename):
@@ -273,6 +293,24 @@ def generate_observation(camera_pos_13, path, renderer=None):
     plot_rgb(rgb_image_1mk3, path + filename_rgb)
 
     return path + filename_rgb, traversible, dx_m
+
+def generate_observation_retimg(camera_pos_13):
+    p = create_params()
+
+    r = HumANavRenderer.get_renderer(p)
+
+    dx_cm, traversible = r.get_config()
+ 
+    # Convert the grid spacing to units of meters. Should be 5cm for the S3DIS data
+    dx_m = dx_cm/100.
+
+    rgb_image_1mk3, depth_image_1mk1 = render_rgb_and_depth(r, camera_pos_13, dx_m, human_visible=False)
+
+    camera_pos_str = '_' + str(camera_pos_13[0][0]) + '_' + str(camera_pos_13[0][1]) + '_' + str(camera_pos_13[0][2])
+    filename_rgb = 'rgb' + camera_pos_str + '.png'
+
+    # Plot the rendered images
+    return plot_rgb_retimg(rgb_image_1mk3)
 
 
 def example1():
