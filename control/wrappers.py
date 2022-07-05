@@ -684,6 +684,12 @@ class CollectGymDataset(object):
     transition = self._process_observ(observ).copy()
     transition['action'] = action
     transition['reward'] = reward
+    # Assumes a particular wrapper onion!!
+    state = self._env._env._env.state
+    transition['state'] = state
+    reached_goal = self._env._env._env.reached_goal
+    transition['reached_goal'] = reached_goal
+    print("\n\nPROCESS STEP", state, reached_goal, "\n\n")
     self._episode.append(transition)
     if done:
       episode = self._get_episode()
