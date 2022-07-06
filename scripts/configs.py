@@ -266,6 +266,7 @@ def _active_collection(collects, defaults, config, params):
   for task in config.tasks:
     for collect in collects:
       collect = tools.AttrDict(collect, _defaults=defs)
+      print("\n\nACTIVE COLLECTION", collect.horizon, collect.batch_size, collect.objective, collect.after, collect.every, collect.until, "\n\n")
       sim = _define_simulation(
           task, config, params, collect.horizon, collect.batch_size,
           collect.objective)

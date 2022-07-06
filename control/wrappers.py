@@ -31,6 +31,7 @@ import numpy as np
 import skimage.transform
 import tensorflow as tf
 
+from planet.plotting import stanford_viz
 from planet.tools import nested
 
 
@@ -687,9 +688,11 @@ class CollectGymDataset(object):
     # Assumes a particular wrapper onion!!
     state = self._env._env._env.state
     transition['state'] = state
+    orientation = self._env._env._env.orientation
+    transition['orientation'] = orientation
     reached_goal = self._env._env._env.reached_goal
     transition['reached_goal'] = reached_goal
-    print("\n\nPROCESS STEP", state, reached_goal, "\n\n")
+    #print("\n\nPROCESS STEP", state, orientation, reached_goal, "\n\n")
     self._episode.append(transition)
     if done:
       episode = self._get_episode()
@@ -705,6 +708,9 @@ class CollectGymDataset(object):
     transition = self._process_observ(observ).copy()
     transition['action'] = np.zeros_like(self.action_space.low)
     transition['reward'] = 0.0
+    transition['state'] = self._env._env._env.state
+    transition['orientation'] = orientation = self._env._env._env.orientation
+    transition['reached_goal'] = self._env._env._env.reached_goal
     self._episode = [transition]
     return observ
 
@@ -740,6 +746,8 @@ class CollectGymDataset(object):
     folder = os.path.basename(self._outdir)
     name = os.path.splitext(os.path.basename(filename))[0]
     print('Recorded episode {} to {}.'.format(name, folder))
+    stanford_viz.plot_maze(episode, folder, name)
+    stanford_viz.visualize_learning(episode, folder)
 
 
 class ConvertTo32Bit(object):
