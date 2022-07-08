@@ -110,8 +110,9 @@ class Trainer(object):
       self._savers.append(saver)
     self._logdirs.append(logdir or self._logdir)
     if checkpoint is None and self._config.checkpoint_to_load:
-      self._checkpoints.append(
-          os.path.join(self._logdirs[-1], self._config.checkpoint_to_load))
+      # self._checkpoints.append(
+      #     os.path.join(self._logdirs[-1], self._config.checkpoint_to_load))
+      self._checkpoints.append('/home/sampada/planet/' + self._config.checkpoint_to_load)
     else:
       self._checkpoints.append(checkpoint)
 
@@ -300,7 +301,7 @@ class Trainer(object):
     config = tf.ConfigProto()
     #config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True, device_count = {'GPU': 0})
     #config = tf.ConfigProto(allow_soft_placement=True, device_count = {'GPU': 0})
-    config.gpu_options.visible_device_list = "1"
+    config.gpu_options.visible_device_list = "2"
     #config.gpu_options.allow_growth = True
     try:
       return tf.Session('local', config=config)  

@@ -12,6 +12,8 @@ import pickle
 sep = Stanford_Environment_Params()
 env = StanfordEnvironmentClient()
 
+BASE_FOLDER = 'TEMPO/00001/'
+
 def plot_maze(episode, figure_name_folder, figure_name_name, test_trap=None):
     #print("\n\nMADE IT", episode, "\n\n")
 
@@ -76,7 +78,7 @@ def plot_maze(episode, figure_name_folder, figure_name_name, test_trap=None):
             plt.plot(x[i], y[i], color=viridis(colorvec[i]), marker='o')
 
     ax.set_aspect('equal')
-    plt.savefig("00001/" + figure_name_folder + "/" + figure_name_name)
+    plt.savefig(BASE_FOLDER + figure_name_folder + "/" + figure_name_name)
     plt.close()
 
 
@@ -89,21 +91,21 @@ def find_steps_taken(episode):
 
 def dump_pickle(episode, figure_name_folder):
     try:
-        episode_dict = pickle.load(open("00001/" + figure_name_folder + "/" + "episode_info.p", "rb"))
+        episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "rb"))
     except (OSError, IOError) as e:
         episode_dict = {'reward': [np.sum(episode['reward'])], 
                         'steps_taken': [find_steps_taken(episode)]}
-        pickle.dump(episode_dict, open("00001/" + figure_name_folder + "/" + "episode_info.p", "wb"))
+        pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "wb"))
         return
 
     episode_dict['reward'].append(np.sum(episode['reward']))
     episode_dict['steps_taken'].append(find_steps_taken(episode))
-    pickle.dump(episode_dict, open("00001/" + figure_name_folder + "/" + "episode_info.p", "wb"))
+    pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "wb"))
 
 def visualize_learning(episode, figure_name_folder):
     dump_pickle(episode, figure_name_folder)
 
-    episode_dict = pickle.load(open("00001/" + figure_name_folder + "/" + "episode_info.p", "rb"))
+    episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "rb"))
     
     num_records = len(episode_dict['reward'])
     episode_number_list = np.linspace(1, num_records, num_records)
@@ -112,7 +114,7 @@ def visualize_learning(episode, figure_name_folder):
     ax.plot(episode_number_list, episode_dict['reward'])
     plt.xlabel("Episodes")
     plt.ylabel("Rewards")
-    plt.savefig("00001/" + figure_name_folder + "/rewards")
+    plt.savefig(BASE_FOLDER + figure_name_folder + "/rewards")
     plt.close()
 
     num_records = len(episode_dict['steps_taken'])
@@ -122,76 +124,5 @@ def visualize_learning(episode, figure_name_folder):
     ax.plot(episode_number_list, episode_dict['steps_taken'])
     plt.xlabel("Episodes")
     plt.ylabel("Steps Taken")
-    plt.savefig("00001/" + figure_name_folder + "/steps_taken")
-    plt.close()
-
-
-
-def visualize_learning_lala(figure_name, episode_loss_list, time_list, step_list, reward_list, num_episodes, name_list):
-    '''
-    :param figure_name: path to save the figure in
-    :param episode_loss_list: List of lists that contains the loss for each network. None type if testing
-    :param time_list: List that contains the mean time to plan for each episode
-    :param step_list: List that contains the number of steps for each episode
-    :param reward_list: List that contains the reward for each episode
-    :param num_episodes: The number of episodes trained to this point
-    :return: Plots of loss, mean training time, number of steps, and reward vs episode
-    '''
-    ##################
-    # Loss plot block
-    ##################
-    if episode_loss_list is not None:
-        for i in range(len(name_list)):
-            num_records = len(episode_loss_list[i])
-            episode_number_list = np.linspace(1, num_records, num_records)
-
-            path_str = figure_name + name_list[i] + sep.fig_format
-            plt.figure(path_str)
-            ax = plt.axes()
-            ax.plot(episode_number_list, episode_loss_list[i])
-            plt.xlabel("Episodes")
-            plt.ylabel("Average Loss")
-            plt.savefig(path_str)
-            plt.close()
-
-    ##################
-    # Time plot block
-    ##################
-
-    episode_number_list = np.linspace(1, len(time_list), len(time_list))
-    path_str = figure_name + "time_plot" + sep.fig_format 
-    plt.figure(path_str)
-    ax = plt.axes()
-    ax.plot(episode_number_list, time_list)
-    plt.xlabel("Episodes")
-    plt.ylabel("Average Time to Plan")
-    plt.savefig(path_str)
-    plt.close()
-
-    ##################
-    # Step plot block
-    ##################
-
-    episode_number_list = np.linspace(1, len(step_list), len(step_list))
-    path_str = figure_name + "step_plot" + sep.fig_format
-    plt.figure(path_str)
-    ax = plt.axes()
-    ax.plot(episode_number_list, step_list)
-    plt.xlabel("Episodes")
-    plt.ylabel("Number of Steps")
-    plt.savefig(path_str)
-    plt.close()
-
-    ##################
-    # Reward plot block
-    ##################
-
-    episode_number_list = np.linspace(1, len(reward_list), len(reward_list))
-    path_str = figure_name + "reward_plot" + sep.fig_format
-    plt.figure(path_str)
-    ax = plt.axes()
-    ax.plot(episode_number_list, reward_list)
-    plt.xlabel("Episodes")
-    plt.ylabel("Average Reward")
-    plt.savefig(path_str)
+    plt.savefig(BASE_FOLDER + figure_name_folder + "/steps_taken")
     plt.close()

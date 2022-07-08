@@ -209,7 +209,8 @@ def _training_schedule(config, params):
   config.train_checkpoint_every = None
   config.test_checkpoint_every = int(
       params.get('checkpoint_every', 10 * config.test_steps))
-  config.checkpoint_to_load = None
+  # config.checkpoint_to_load = None
+  config.checkpoint_to_load = '00001/model.ckpt-1501500' 
   config.savers = [tools.AttrDict(exclude=(r'.*_temporary.*',))]
   config.print_metrics_every = config.train_steps // 10
   config.train_dir = os.path.join(params.logdir, 'train_episodes')
@@ -231,8 +232,8 @@ def _training_schedule(config, params):
 
 
 def _initial_collection(config, params):
-  num_seed_episodes = params.get('num_seed_episodes', 5)
-  #num_seed_episodes = params.get('num_seed_episodes', 1)
+  # num_seed_episodes = params.get('num_seed_episodes', 5)
+  num_seed_episodes = params.get('num_seed_episodes', 1)
   sims = tools.AttrDict(_unlocked=True)
   for task in config.tasks:
     sims['train-' + task.name] = tools.AttrDict(
