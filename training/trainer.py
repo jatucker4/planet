@@ -206,6 +206,7 @@ class Trainer(object):
         print("SUMMARY, MEAN SCORE, GLOBAL_STEP", summary, mean_score, global_step, "\n")
         if self._is_every_steps(
             phase_step, phase.batch_size, phase.checkpoint_every):
+          print("SAVING MODEL CHECKPOINT \n")
           for saver in self._savers:
             self._store_checkpoint(sess, saver, global_step)
         if self._is_every_steps(
@@ -234,6 +235,7 @@ class Trainer(object):
     Returns:
       Boolean of whether the event should happen.
     """
+    print("INSIDE IS_EVERY_STEPS", phase_step, batch, every)
     if not every:
       return False
     covered_steps = range(phase_step, phase_step + batch)
@@ -301,7 +303,7 @@ class Trainer(object):
     config = tf.ConfigProto()
     #config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True, device_count = {'GPU': 0})
     #config = tf.ConfigProto(allow_soft_placement=True, device_count = {'GPU': 0})
-    config.gpu_options.visible_device_list = "2"
+    config.gpu_options.visible_device_list = "1"
     #config.gpu_options.allow_growth = True
     try:
       return tf.Session('local', config=config)  

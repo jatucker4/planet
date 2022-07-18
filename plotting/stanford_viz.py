@@ -12,7 +12,7 @@ import pickle
 sep = Stanford_Environment_Params()
 env = StanfordEnvironmentClient()
 
-BASE_FOLDER = 'TEMPO/00001/'
+BASE_FOLDER = '00001/'
 
 def plot_maze(episode, figure_name_folder, figure_name_name, test_trap=None):
     #print("\n\nMADE IT", episode, "\n\n")

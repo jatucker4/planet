@@ -298,6 +298,8 @@ def generate_observation_retimg(camera_pos_13):
     r = HumANavRenderer.get_renderer(p)
 
     dx_cm, traversible = r.get_config()
+
+    print("SERVER GOT HERE")
  
     # Convert the grid spacing to units of meters. Should be 5cm for the S3DIS data
     dx_m = dx_cm/100.
