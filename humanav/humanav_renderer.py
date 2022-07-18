@@ -29,7 +29,6 @@ class HumANavRenderer():
             # Instantiating a camera/ shader object is only needed
             # for rgb and depth images
             if 'rgb' in self.p.camera_params.modalities or 'disparity' in self.p.camera_params.modalities:
-
                 # Note: Resizing disparity images messes up the depth measurement.
                 # So if we are rendering disparity we restrict resize to be 1.0.
                 if 'disparity' in self.p.camera_params.modalities:

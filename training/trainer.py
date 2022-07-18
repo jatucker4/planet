@@ -239,6 +239,7 @@ class Trainer(object):
     if not every:
       return False
     covered_steps = range(phase_step, phase_step + batch)
+    print("INSIDE IS_EVERY_STEPS", [(step + 1) % every == 0 for step in covered_steps])
     return any((step + 1) % every == 0 for step in covered_steps)
 
   def _find_current_phase(self, global_step):
