@@ -14,7 +14,7 @@ env = StanfordEnvironmentClient()
 
 BASE_FOLDER = '00001/'
 
-def plot_maze(episode, figure_name_folder, figure_name_name, test_trap=None):
+def plot_maze(episode, figure_name_folder, figure_name_name, test_traps=None):
     #print("\n\nMADE IT", episode, "\n\n")
 
     xlim = env.xrange
@@ -27,7 +27,6 @@ def plot_maze(episode, figure_name_folder, figure_name_name, test_trap=None):
             trap1_x[1]-trap1_x[0], env.trap_y[1]-env.trap_y[0]]
     trap2 = [trap2_x[0], env.trap_y[0], 
             trap2_x[1]-trap2_x[0], env.trap_y[1]-env.trap_y[0]]
-    trap = [trap1, trap2]
     dark = [env.xrange[0], env.yrange[0], env.xrange[1]-env.xrange[0], env.dark_line-env.yrange[0]]
 
     states = episode['state']
@@ -40,8 +39,6 @@ def plot_maze(episode, figure_name_folder, figure_name_name, test_trap=None):
 
     # goal: [start_x, start_y, width, height]
     ax.add_patch(Rectangle((goal[0], goal[1]), goal[2], goal[3], facecolor='green'))
-    trap1 = trap[0]
-    trap2 = trap[1]
     # trap i: [start_x, start_y, width, height]
     ax.add_patch(Rectangle((trap1[0], trap1[1]), trap1[2], trap1[3], facecolor='orange'))
     ax.add_patch(Rectangle((trap2[0], trap2[1]), trap2[2], trap2[3], facecolor='orange'))
@@ -57,11 +54,17 @@ def plot_maze(episode, figure_name_folder, figure_name_name, test_trap=None):
     ax.add_patch(Rectangle((trap2[0]+trap2[2], trap1[1]), 
         xlim[1]-(trap2[0]+trap2[2]), trap1[3], facecolor='black', alpha=0.2))
 
-    if test_trap is not None:
+    if test_traps is not None:
         # trap i: [start_x, start_y, width, height]
-        # ax.add_patch(Rectangle((test_trap[0], test_trap[1]), test_trap[2], test_trap[3], facecolor='orange'))
-        test_trap1 = test_trap[0]
-        test_trap2 = test_trap[1]
+        test_trap1_x = test_traps[0] #env.test_trap_x[0]
+        test_trap1_y = test_traps[1] #env.test_trap_y[0]
+        test_trap2_x = test_traps[2] #env.test_trap_x[1]
+        test_trap2_y = test_traps[3] #env.test_trap_y[1]
+        test_trap1 = [test_trap1_x[0], test_trap1_y[0], 
+                test_trap1_x[1]-test_trap1_x[0], test_trap1_y[1]-test_trap1_y[0]]
+        test_trap2 = [test_trap2_x[0], test_trap2_y[0], 
+                test_trap2_x[1]-test_trap2_x[0], test_trap2_y[1]-test_trap2_y[0]]
+        
         ax.add_patch(Rectangle((test_trap1[0], test_trap1[1]), test_trap1[2], test_trap1[3], facecolor='orange'))
         ax.add_patch(Rectangle((test_trap2[0], test_trap2[1]), test_trap2[2], test_trap2[3], facecolor='orange'))
 

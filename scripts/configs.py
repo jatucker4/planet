@@ -28,7 +28,7 @@ from planet.scripts import tasks as tasks_lib
 from planet.scripts import objectives as objectives_lib
 
 
-IS_TESTING = False
+IS_TESTING = True
 
 
 ACTIVATIONS = {
@@ -208,9 +208,11 @@ def _training_schedule(config, params):
   config.is_testing = IS_TESTING
   config.train_steps = int(params.get('train_steps', 50000))
   config.test_steps = int(params.get('test_steps', 50))
-  config.max_steps = int(params.get('max_steps', 5e7))
+  # config.max_steps = int(params.get('max_steps', 5e7))
+  config.max_steps = int(params.get('max_steps', 1501550))
   config.train_log_every = config.train_steps
-  config.train_checkpoint_every = None
+  # config.train_checkpoint_every = None
+  config.train_checkpoint_every = 100
   config.test_checkpoint_every = int(
       params.get('checkpoint_every', 10 * config.test_steps))
   

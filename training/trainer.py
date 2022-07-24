@@ -206,7 +206,7 @@ class Trainer(object):
         print("SUMMARY, MEAN SCORE, GLOBAL_STEP", summary, mean_score, global_step, "\n")
         if self._is_every_steps(
             phase_step, phase.batch_size, phase.checkpoint_every):
-          print("SAVING MODEL CHECKPOINT \n")
+          print("SAVING MODEL CHECKPOINT", global_step, phase_step)
           for saver in self._savers:
             self._store_checkpoint(sess, saver, global_step)
         if self._is_every_steps(
@@ -235,11 +235,12 @@ class Trainer(object):
     Returns:
       Boolean of whether the event should happen.
     """
-    print("INSIDE IS_EVERY_STEPS", phase_step, batch, every)
+    #print("INSIDE IS_EVERY_STEPS", phase_step, batch, every)
     if not every:
+      #print("GOING TO PRINT FALSE")
       return False
     covered_steps = range(phase_step, phase_step + batch)
-    print("INSIDE IS_EVERY_STEPS", [(step + 1) % every == 0 for step in covered_steps])
+    #print("INSIDE IS_EVERY_STEPS", [(step + 1) % every == 0 for step in covered_steps])
     return any((step + 1) % every == 0 for step in covered_steps)
 
   def _find_current_phase(self, global_step):

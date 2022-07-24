@@ -81,7 +81,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
         # During test time - have an additional trap region (optional)
         self.test_trap = False
-        self.test_trap_is_random = False
+        self.test_trap_is_random = True
         self.test_trap_x = [[3, 3.5], [5, 5.5]] #[[1.5, 2], [6.5, 7]] #[3.5, 5]
         self.test_trap_y = [[0.5, 1], [0.5, 1]] #[0.5, 1] #[0.75, 1.25]
 
@@ -197,6 +197,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         # Each trap will be randomly placed between y = 0.5 and 0.75 (dark line)
 
         if self.test_trap and self.test_trap_is_random:
+            print("\n\n\nRANDOMIZING THE TEST TRAP")
             trap_size = 0.5
             trap1_x = np.random.rand() * (self.target_x[0] - self.xrange[0]) + self.xrange[0]
             trap2_x = np.random.rand() * (self.xrange[1]-trap_size - self.target_x[1]) + self.target_x[1]
@@ -205,6 +206,8 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             trap1_y = np.random.rand() * (self.dark_line - self.init_strip_y[1]) + self.init_strip_y[1]
             trap2_y = np.random.rand() * (self.dark_line - self.init_strip_y[1]) + self.init_strip_y[1]
             self.test_trap_y = [[trap1_y, trap1_y+trap_size], [trap2_y, trap2_y+trap_size]]
+
+            print(self.test_trap_x, self.test_trap_y, "\n\n\n")
 
         if random_obs:
             obs = self.observation_space.sample()
