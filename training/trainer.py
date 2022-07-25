@@ -103,7 +103,7 @@ class Trainer(object):
       checkpoint: Checkpoint name to load; None for newest.
     """
     variables = tools.filter_variables(include, exclude)
-    saver = tf.train.Saver(variables, keep_checkpoint_every_n_hours=2)
+    saver = tf.train.Saver(variables, max_to_keep=20, keep_checkpoint_every_n_hours=2)
     if load:
       self._loaders.append(saver)
     if save:

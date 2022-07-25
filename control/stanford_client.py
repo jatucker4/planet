@@ -221,7 +221,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
     def step(self, action, random_obs=False, action_is_vector=False):
         # random_obs = True only for debugging purposes
-        episode_length = 50
+        episode_length = 200
         curr_state = self.state
 
         # Get the observation at the current state to provide PlaNet the expected output

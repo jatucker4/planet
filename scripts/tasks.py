@@ -39,11 +39,9 @@ def floor(config, params):
   return Task('floor', env_ctor, max_length, state_components)
 
 def stanford(config, params):
-  print("\n\nPARAMS", params, "\n\n")
   action_repeat = params.get('action_repeat', 1)
-  print("ACTION REPEAT", action_repeat)
-  max_length = 1000 // action_repeat
-  #max_length = 50 // action_repeat
+  # max_length = 1000 // action_repeat
+  max_length = 200 // action_repeat
   state_components = ['reward']
   env_ctor = tools.bind(
       _flexible_control_env, control.StanfordEnvironmentClient(), action_repeat, max_length,
