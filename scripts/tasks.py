@@ -39,7 +39,7 @@ def floor(config, params):
   return Task('floor', env_ctor, max_length, state_components)
 
 def stanford(config, params):
-  action_repeat = params.get('action_repeat', 1)
+  action_repeat = params.get('action_repeat', 2)
   # max_length = 1000 // action_repeat
   max_length = 200 // action_repeat
   state_components = ['reward']
@@ -49,7 +49,7 @@ def stanford(config, params):
   return Task('stanford', env_ctor, max_length, state_components)
 
 def intermediate_dummy(config, params):
-  action_repeat = params.get('action_repeat', 1)
+  action_repeat = params.get('action_repeat', 2)
   max_length = 1000 // action_repeat
   #max_length = 50 // action_repeat
   state_components = ['reward']
