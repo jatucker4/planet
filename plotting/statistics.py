@@ -16,4 +16,4 @@ steps_taken = np.array(steps_taken[1:]) * ACTION_REPEAT
 print("Number of Testing Episodes:", len(steps_taken))
 print("Mean Reward:", np.mean(rewards))
 print("Mean Steps Taken:", np.mean(steps_taken)) 
-print("Success Rate:", np.sum([elem < MAX_STEPS + 1 for elem in steps_taken])/len(steps_taken))
+print("Success Rate:", np.sum([elem < MAX_STEPS for elem in steps_taken])/len(steps_taken))

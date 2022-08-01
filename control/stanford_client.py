@@ -221,7 +221,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
     def step(self, action, random_obs=False, action_is_vector=False):
         # random_obs = True only for debugging purposes
-        episode_length = 200
+        episode_length = sep.max_steps
         curr_state = self.state
 
         # Get the observation at the current state to provide PlaNet the expected output
@@ -273,7 +273,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             cond_false = self.in_trap(next_state)
             reward -= sep.epi_reward * cond_false
 
-        self.done = self._step >= episode_length
+        self.done = self._step > episode_length
 
         info = {}
         return obs, reward, self.done, info
