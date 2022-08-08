@@ -129,3 +129,29 @@ def visualize_learning(episode, figure_name_folder):
     plt.ylabel("Steps Taken")
     plt.savefig(BASE_FOLDER + figure_name_folder + "/steps_taken")
     plt.close()
+
+def dump_pickle_step_time(episode_avg_step_time, figure_name_folder):
+    try:
+        episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "rb"))
+    except (OSError, IOError) as e:
+        episode_dict = {'step_time': [episode_avg_step_time]}
+        pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "wb"))
+        return
+
+    episode_dict['step_time'].append(episode_avg_step_time)
+    pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "wb"))
+
+def visualize_step_time(episode_avg_step_time, figure_name_folder):
+    dump_pickle_step_time(episode_avg_step_time, figure_name_folder)
+
+    episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "rb"))
+    
+    num_records = len(episode_dict['step_time'])
+    episode_number_list = np.linspace(1, num_records, num_records)
+    plt.figure()
+    ax = plt.axes()
+    ax.plot(episode_number_list, episode_dict['step_time'])
+    plt.xlabel("Episodes")
+    plt.ylabel("Average Step Times")
+    plt.savefig(BASE_FOLDER + figure_name_folder + "/step_times")
+    plt.close()

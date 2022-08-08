@@ -685,7 +685,7 @@ class CollectGymDataset(object):
     transition = self._process_observ(observ).copy()
     transition['action'] = action
     transition['reward'] = reward
-    # Assumes a particular wrapper onion!!
+    # Warning: Assumes a particular wrapper onion!!
     state = self._env._env._env.state
     transition['state'] = state
     orientation = self._env._env._env.orientation

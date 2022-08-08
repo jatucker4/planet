@@ -273,7 +273,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             cond_false = self.in_trap(next_state)
             reward -= sep.epi_reward * cond_false
 
-        self.done = self._step > episode_length
+        self.done = self._step >= episode_length - 1
 
         info = {}
         return obs, reward, self.done, info

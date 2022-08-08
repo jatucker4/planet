@@ -284,9 +284,6 @@ def apply_optimizers(objectives, trainer, config):
 
 def simulate_episodes(
     config, params, graph, cleanups, expensive_summaries, gif_summary, name):
-# def simulate_episodes(
-#     config, params, graph, cleanups, expensive_summaries, gif_summary, name, batchenv,
-#     donee, scoree):
   def env_ctor():
     env = params.task.env_ctor()
     #print("INSIDE SIMULATE EPISODES", env)
@@ -311,15 +308,14 @@ def simulate_episodes(
     params.update(agent_config)
   with agent_config.unlocked:
     agent_config.update(params)
+  outdir = params.save_episode_dir 
+  outdir = outdir and os.path.expanduser(outdir)
+  outdir = os.path.basename(outdir)
   summary, return_, cleanup = control.simulate(
       graph.step, env_ctor, params.task.max_length,
       params.num_agents, agent_config, config.isolate_envs,
-      expensive_summaries, gif_summary, name=name)
-  # summary, return_, cleanup = control.simulate(
-  #     graph.step, env_ctor, params.task.max_length,
-  #     params.num_agents, agent_config, config.isolate_envs,
-  #     expensive_summaries, gif_summary, name=name, batchenv=batchenv,
-  #     donee=donee, scoree=scoree)
+      expensive_summaries, gif_summary, name=name, 
+      outdir=outdir)
   cleanups.append(cleanup)  # Work around tf.cond() tensor return type.
   # print("SUMMARY IN SIMULATE_EPISODES", summary)
   # print("RETURN IN SIMULATE EPISODES", return_)
