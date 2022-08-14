@@ -305,7 +305,7 @@ class Trainer(object):
     config = tf.ConfigProto()
     #config = tf.ConfigProto(allow_soft_placement=True, log_device_placement=True, device_count = {'GPU': 0})
     #config = tf.ConfigProto(allow_soft_placement=True, device_count = {'GPU': 0})
-    config.gpu_options.visible_device_list = "1"
+    config.gpu_options.visible_device_list = "3"
     #config.gpu_options.allow_growth = True
     try:
       return tf.Session('local', config=config)  

@@ -170,8 +170,10 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
     @property
     def observation_space(self):  ## TODO Include pixel wrapper and don't normalize
-        low = np.zeros([64, 64, 3], dtype=np.float32)
-        high = np.ones([64, 64, 3], dtype=np.float32)
+        # low = np.zeros([64, 64, 3], dtype=np.float32)
+        # high = np.ones([64, 64, 3], dtype=np.float32)
+        low = np.zeros([32, 32, 3], dtype=np.float32)
+        high = np.ones([32, 32, 3], dtype=np.float32)
         spaces = {'image': gym.spaces.Box(low, high)}
         return gym.spaces.Dict(spaces)
 

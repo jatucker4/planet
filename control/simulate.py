@@ -51,22 +51,22 @@ def simulate(
 
     # Find the average time it took to plan during the episode
     # Episode is defined as the steps it took to reach the goal
-    print("STEP TIMES", step_time)
-    print("REACHED GOAL", reached_goal)
+    # print("STEP TIMES", step_time)
+    # print("REACHED GOAL", reached_goal)
     reached_goal_indices = tf.where(tf.squeeze(reached_goal))
-    print("REACHED GOAL INDICES", reached_goal_indices.shape)
+    # print("REACHED GOAL INDICES", reached_goal_indices.shape)
     if tf.size(reached_goal_indices) == 0:
-      print("INSIDE IF")
+      # print("INSIDE IF")
       avg_step_time = tf.reduce_mean(step_time)
     else:
-      print("INSIDE ELSE")
+      # print("INSIDE ELSE")
       first_reached_goal_index = 100 #reached_goal_indices[0][0]
       step_time = step_time[:first_reached_goal_index + 1]
       avg_step_time = tf.reduce_mean(step_time)
-    #print("AVG STEP TIME", avg_step_time)
+    # print("AVG STEP TIME", avg_step_time)
     summaries.append(tf.summary.scalar('sampada_step_time', avg_step_time))
-    #stanford_viz.visualize_step_time(avg_step_time, outdir)
-    #print("STANFORD VIZ VISUALIZE STEP TIME\n")
+    # stanford_viz.visualize_step_time(avg_step_time, outdir)
+    # print("STANFORD VIZ VISUALIZE STEP TIME\n")
 
     return_mean = tf.reduce_mean(return_)
     summaries.append(tf.summary.scalar('return', return_mean))

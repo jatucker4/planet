@@ -110,8 +110,8 @@ def _model_components(config, params):
   config.gradient_heads = params.get('gradient_heads', ['image', 'reward'])
   network = getattr(networks, params.get('network', 'conv_ha'))
   config.activation = ACTIVATIONS[params.get('activation', 'relu')]
-  config.num_layers = params.get('num_layers', 3)
-  config.num_units = params.get('num_units', 300)
+  config.num_layers = params.get('num_layers', 2)
+  config.num_units = params.get('num_units', 200)
   config.head_network = tools.bind(
       networks.feed_forward,
       num_layers=config.num_layers,
@@ -206,10 +206,10 @@ def _loss_functions(config, params):
 
 def _training_schedule(config, params):
   config.is_testing = IS_TESTING
-  config.train_steps = int(params.get('train_steps', 2000))
+  config.train_steps = int(params.get('train_steps', 1000))
   config.test_steps = int(params.get('test_steps', 50))
   # config.max_steps = int(params.get('max_steps', 5e7))
-  config.max_steps = int(params.get('max_steps', 3500000))
+  config.max_steps = int(params.get('max_steps', 7000000))
   config.train_log_every = config.train_steps
   # config.train_checkpoint_every = None
   config.train_checkpoint_every = 100000
@@ -245,7 +245,7 @@ def _initial_collection(config, params):
   if IS_TESTING:
     num_seed_episodes = params.get('num_seed_episodes', 1)
   else:
-    num_seed_episodes = params.get('num_seed_episodes', 1)
+    num_seed_episodes = params.get('num_seed_episodes', 5)
   
   sims = tools.AttrDict(_unlocked=True)
   for task in config.tasks:
@@ -266,8 +266,8 @@ def _active_collection(collects, defaults, config, params):
       batch_size=1,
       horizon=params.get('planner_horizon', 12),
       objective=params.get('collect_objective', 'reward'),
-      after=params.get('collect_every', 1000),
-      every=params.get('collect_every', 1000),
+      after=params.get('collect_every', 100),
+      every=params.get('collect_every', 100),
       # after=params.get('collect_every', 50),
       # every=params.get('collect_every', 50),
       until=-1,
