@@ -41,7 +41,7 @@ def simulate(
 
   summaries = []
   with tf.variable_scope(name):
-    return_, image, action, reward, cleanup, step_time, reached_goal = collect_rollouts(
+    return_, image, action, reward, cleanup, step_time = collect_rollouts( #), reached_goal = collect_rollouts(
         step=step,
         env_ctor=env_ctor,
         duration=duration,
@@ -49,21 +49,22 @@ def simulate(
         agent_config=agent_config,
         isolate_envs=isolate_envs)
 
-    # Find the average time it took to plan during the episode
-    # Episode is defined as the steps it took to reach the goal
-    # print("STEP TIMES", step_time)
-    # print("REACHED GOAL", reached_goal)
-    reached_goal_indices = tf.where(tf.squeeze(reached_goal))
-    # print("REACHED GOAL INDICES", reached_goal_indices.shape)
-    if tf.size(reached_goal_indices) == 0:
-      # print("INSIDE IF")
-      avg_step_time = tf.reduce_mean(step_time)
-    else:
-      # print("INSIDE ELSE")
-      first_reached_goal_index = 100 #reached_goal_indices[0][0]
-      step_time = step_time[:first_reached_goal_index + 1]
-      avg_step_time = tf.reduce_mean(step_time)
-    # print("AVG STEP TIME", avg_step_time)
+    # # Find the average time it took to plan during the episode
+    # # Episode is defined as the steps it took to reach the goal
+    # # print("STEP TIMES", step_time)
+    # # print("REACHED GOAL", reached_goal)
+    # reached_goal_indices = tf.where(tf.squeeze(reached_goal))
+    # # print("REACHED GOAL INDICES", reached_goal_indices.shape)
+    # if tf.size(reached_goal_indices) == 0:
+    #   # print("INSIDE IF")
+    #   avg_step_time = tf.reduce_mean(step_time)
+    # else:
+    #   # print("INSIDE ELSE")
+    #   first_reached_goal_index = 100 #reached_goal_indices[0][0]
+    #   step_time = step_time[:first_reached_goal_index + 1]
+    #   avg_step_time = tf.reduce_mean(step_time)
+
+    avg_step_time = tf.reduce_mean(step_time)
     summaries.append(tf.summary.scalar('sampada_step_time', avg_step_time))
     # stanford_viz.visualize_step_time(avg_step_time, outdir)
     # print("STANFORD VIZ VISUALIZE STEP TIME\n")
@@ -97,11 +98,11 @@ def collect_rollouts(
        log=False,
        reset=tf.equal(step, 0))
     
-    step_time_temp = tf.constant([step_time])
-    print("STEP TIME SHAPE", step_time_temp.shape)
-    step_time = tf.get_variable(
-          'step_time', (1,), tf.float32,
-          tf.constant_initializer(step_time), trainable=False)
+    # step_time_temp = tf.constant([step_time])
+    # print("STEP TIME SHAPE", step_time_temp.shape)
+    # step_time = tf.get_variable(
+    #       'step_time', (1,), tf.float32,
+    #       tf.constant_initializer(step_time), trainable=False)
     #step_time.assign(step_time_temp)
 
     with tf.control_dependencies([done, score]):
@@ -112,11 +113,12 @@ def collect_rollouts(
       inner_env = batch_env._batch_env._envs[0]._env._env._env._env
       print("INNER ENV", inner_env)
       #reached_goal = inner_env.reached_goal
-      reached_goal = tf.get_variable(
-          'reached_goal', (1,), tf.bool,
-          tf.constant_initializer(inner_env.reached_goal), trainable=False)
+      # reached_goal = tf.get_variable(
+      #     'reached_goal', (1,), tf.bool,
+      #     tf.constant_initializer(inner_env.reached_goal), trainable=False)
+      reached_goal = None
       #reached_goal.assign(tf.constant([inner_env.reached_goal]))
-    return done, score, image, batch_action, batch_reward, step_time, reached_goal
+    return done, score, image, batch_action, batch_reward, step_time#, reached_goal
 
   initializer = (
       tf.zeros([num_agents], tf.bool),
@@ -124,16 +126,16 @@ def collect_rollouts(
       0 * batch_env.observ,
       0 * batch_env.action,
       tf.zeros([num_agents], tf.float32),
-      tf.zeros([num_agents], tf.float32),
-      tf.zeros([num_agents], tf.bool))
-  done, score, image, action, reward, step_time, reached_goal = tf.scan(
+      tf.zeros([num_agents], tf.float64)) #,
+      # tf.zeros([num_agents], tf.bool))
+  done, score, image, action, reward, step_time = tf.scan( #, reached_goal = tf.scan(
       simulate_fn, tf.range(duration),
       initializer, parallel_iterations=1)
   score = tf.boolean_mask(score, done)
   image = tf.transpose(image, [1, 0, 2, 3, 4])
   action = tf.transpose(action, [1, 0, 2])
   reward = tf.transpose(reward)
-  return score, image, action, reward, cleanup, step_time, reached_goal 
+  return score, image, action, reward, cleanup, step_time#, reached_goal 
 
 
 def define_batch_env(env_ctor, num_agents, isolate_envs):
@@ -214,17 +216,17 @@ def simulate_step(batch_env, algo, log=True, reset=False):
     """
     prevob = batch_env.observ + 0  # Ensure a copy of the variable value.
     agent_indices = tf.range(len(batch_env))
-    t0 = time.time()
     action, step_summary = algo.perform(agent_indices, prevob)
-    t1 = time.time()
-    step_time = t1 - t0
-    print("STEP TIME T0 T1", step_time)
+    new_time = tf.timestamp()
+    new_time = tf.reshape(new_time, [len(batch_env)])
     #print("INSIDE DEFINE STEP", action)
     action.set_shape(batch_env.action.shape)
     with tf.control_dependencies([batch_env.step(action)]):
-      #print("SCORE VAR", score_var)
       add_score = score_var.assign_add(batch_env.reward)
       inc_length = length_var.assign_add(tf.ones(len(batch_env), tf.int32))
+      step_time = step_time_var.assign(new_time - last_time)
+      last_time.assign(new_time)
+      print("DEFINE STEP: STEP TIME T0 T1", step_time)
     with tf.control_dependencies([add_score, inc_length]):
       agent_indices = tf.range(len(batch_env))
       experience_summary = algo.experience(
@@ -280,6 +282,16 @@ def simulate_step(batch_env, algo, log=True, reset=False):
           'length', (len(batch_env),), tf.int32,
           tf.constant_initializer(0),
           trainable=False, collections=[tf.GraphKeys.LOCAL_VARIABLES])
+      step_time_var = tf.get_variable(
+          'step_time', (len(batch_env),), tf.float64,
+          tf.constant_initializer(0),
+          trainable=False, collections=[tf.GraphKeys.LOCAL_VARIABLES])
+      last_time = tf.Variable(lambda: tf.reshape(tf.timestamp(), [len(batch_env)]), trainable=False, dtype=tf.float64)
+      # last_time_var = tf.get_variable(
+      #     'last_time', (len(batch_env),), tf.float64,
+      #     tf.constant_initializer(0),
+      #     trainable=False, collections=[tf.GraphKeys.LOCAL_VARIABLES])
+
     mean_score = streaming_mean.StreamingMean((), tf.float32, 'mean_score')
     mean_length = streaming_mean.StreamingMean((), tf.float32, 'mean_length')
     agent_indices = tf.cond(
@@ -291,11 +303,7 @@ def simulate_step(batch_env, algo, log=True, reset=False):
         lambda: _define_begin_episode(agent_indices),
         lambda: (str(), score_var, length_var))
     with tf.control_dependencies([begin_episode]):
-      #t0 = time.time()
       step, score, length, step_time = _define_step()
-      #t1 = time.time()
-      #step_time = t1 - t0
-      #print("STEP TIME T0 T1", step_time)
     with tf.control_dependencies([step]):
       agent_indices = tf.cast(tf.where(batch_env.done)[:, 0], tf.int32)
       end_episode = tf.cond(
@@ -306,5 +314,6 @@ def simulate_step(batch_env, algo, log=True, reset=False):
           _define_summaries(), begin_episode, step, end_episode])
     with tf.control_dependencies([summary]):
       score = 0.0 + score
+      step_time = 0.0 + step_time
       done = batch_env.done
     return done, score, step_time, summary
