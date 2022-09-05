@@ -126,7 +126,7 @@ def collect_rollouts(
       0 * batch_env.observ,
       0 * batch_env.action,
       tf.zeros([num_agents], tf.float32),
-      tf.zeros([num_agents], tf.float64)) #,
+      tf.zeros([num_agents], tf.float32)) #,
       # tf.zeros([num_agents], tf.bool))
   done, score, image, action, reward, step_time = tf.scan( #, reached_goal = tf.scan(
       simulate_fn, tf.range(duration),
@@ -216,16 +216,22 @@ def simulate_step(batch_env, algo, log=True, reset=False):
     """
     prevob = batch_env.observ + 0  # Ensure a copy of the variable value.
     agent_indices = tf.range(len(batch_env))
-    action, step_summary = algo.perform(agent_indices, prevob)
-    new_time = tf.timestamp()
+    new_time = tf.cast(tf.timestamp(), tf.float32)
     new_time = tf.reshape(new_time, [len(batch_env)])
+    # with tf.control_dependencies([batch_env.timer()]):
+    #   last_time.assign(batch_env._time)
+    with tf.control_dependencies([batch_env.timer()]):
+      add_score = score_var.assign_add(0.0 * batch_env.reward)
+      inc_length = length_var.assign_add(tf.zeros(len(batch_env), tf.int32))
+    # t = batch_env.timer()
+    action, step_summary = algo.perform(agent_indices, prevob, batch_env)
     #print("INSIDE DEFINE STEP", action)
     action.set_shape(batch_env.action.shape)
     with tf.control_dependencies([batch_env.step(action)]):
       add_score = score_var.assign_add(batch_env.reward)
       inc_length = length_var.assign_add(tf.ones(len(batch_env), tf.int32))
       step_time = step_time_var.assign(new_time - last_time)
-      last_time.assign(new_time)
+      # last_time.assign(new_time)
       print("DEFINE STEP: STEP TIME T0 T1", step_time)
     with tf.control_dependencies([add_score, inc_length]):
       agent_indices = tf.range(len(batch_env))
@@ -283,10 +289,11 @@ def simulate_step(batch_env, algo, log=True, reset=False):
           tf.constant_initializer(0),
           trainable=False, collections=[tf.GraphKeys.LOCAL_VARIABLES])
       step_time_var = tf.get_variable(
-          'step_time', (len(batch_env),), tf.float64,
+          'step_time', (len(batch_env),), tf.float32,
           tf.constant_initializer(0),
           trainable=False, collections=[tf.GraphKeys.LOCAL_VARIABLES])
-      last_time = tf.Variable(lambda: tf.reshape(tf.timestamp(), [len(batch_env)]), trainable=False, dtype=tf.float64)
+      last_time = tf.Variable(lambda: tf.reshape(tf.cast(tf.timestamp(), tf.float32), [len(batch_env)]), 
+                              trainable=False, dtype=tf.float32)
       # last_time_var = tf.get_variable(
       #     'last_time', (len(batch_env),), tf.float64,
       #     tf.constant_initializer(0),

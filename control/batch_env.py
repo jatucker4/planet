@@ -17,6 +17,8 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
+import pickle
+import time
 
 #from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
@@ -110,6 +112,11 @@ class BatchEnv(object):
     """
     return getattr(self._envs[0], name)
 
+  def timer(self, arg):
+    t = time.time()
+    print("Batch env timer", t)
+    return t
+
   def step(self, actions):
     """Forward a batch of actions to the wrapped environments.
 
@@ -133,6 +140,19 @@ class BatchEnv(object):
           for env, action in zip(self._envs, actions)]
     else:
       print("\nGoing to enter env.step now\n")
+      t0 = time.time()
+      try:
+          pickle_time0 = time.time()
+          planning_times = pickle.load(open("planning_times.p", "rb"))
+          print("Elapsed time", t0-planning_times[-1])
+          planning_times.append(t0)
+          pickle.dump(planning_times, open("planning_times.p", "wb"))
+          pickle_time1 = time.time()
+          print("Pickling time", pickle_time1-pickle_time0)
+      except Exception:
+          planning_times = [t0]
+          pickle.dump(planning_times, open("planning_times.p", "wb"))
+
       transitions = [
           env.step(action, blocking=False)
           for env, action in zip(self._envs, actions)]

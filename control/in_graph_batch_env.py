@@ -21,6 +21,7 @@ from __future__ import print_function
 import gym
 import numpy as np
 import tensorflow as tf
+import time
 
 
 class InGraphBatchEnv(object):
@@ -55,6 +56,9 @@ class InGraphBatchEnv(object):
           tf.constant_initializer(0), trainable=False)
       self._reward = tf.get_variable(
           'reward', batch_dims, tf.float32,
+          tf.constant_initializer(0), trainable=False)
+      self._time = tf.get_variable(
+          'time', (1, ), tf.float64,
           tf.constant_initializer(0), trainable=False)
       # This variable should be boolean, but tf.scatter_update() does not
       # support boolean resource variables yet.
@@ -94,6 +98,16 @@ class InGraphBatchEnv(object):
     """Access an underlying environment by index."""
     return self._batch_env[index]
 
+  def timer(self):
+    print("\nIN HERE\n")
+    with tf.name_scope('environment/simulate'):
+      t = tf.py_func(
+          lambda num: self._batch_env.timer(num), [0],
+          [tf.float64], name='timer')
+    t = tf.cast(t, tf.float64)
+    self._time = self._time.assign(t)
+    return tf.identity(self._time)
+
   def step(self, action):
     """Step the batch of environments.
 
@@ -105,6 +119,7 @@ class InGraphBatchEnv(object):
     Returns:
       Operation.
     """
+    print("\nNOW IN HERE\n")
     with tf.name_scope('environment/simulate'):
       observ_dtype = self._parse_dtype(self._batch_env.observation_space)
       observ, reward, done = tf.py_func(

@@ -1,10 +1,11 @@
 import cv2
 import glob
+import gym
 import numpy as np
 import os
 import pickle
 import random
-import gym
+import time
 import zlib
 import zmq 
 
@@ -222,6 +223,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         return obs
 
     def step(self, action, random_obs=False, action_is_vector=False):
+        t0 = time.time()
         # random_obs = True only for debugging purposes
         episode_length = sep.max_steps
         curr_state = self.state
@@ -278,6 +280,9 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         self.done = self._step >= episode_length - 1
 
         info = {}
+        t1 = time.time()
+        print("Time to step", t1-t0)
+        print("Done", self.done)
         return obs, reward, self.done, info
     
     def point_to_map(self, pos_2, cast_to_int=True):
@@ -372,12 +377,12 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             plt.imshow(out)
             fig.savefig("NOISY_RECEIVED_OBS.png", bbox_inches='tight', pad_inches=0)
 
-        rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
-        img_rslice = (out[:, :, 0] - rmean)/rstd
-        img_gslice = (out[:, :, 1] - gmean)/gstd
-        img_bslice = (out[:, :, 2] - bmean)/bstd
+        # rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
+        # img_rslice = (out[:, :, 0] - rmean)/rstd
+        # img_gslice = (out[:, :, 1] - gmean)/gstd
+        # img_bslice = (out[:, :, 2] - bmean)/bstd
 
-        out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
+        # out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
 
         #out = (out - out.mean())/out.std()  # "Normalization" -- TODO
 
