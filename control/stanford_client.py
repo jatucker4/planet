@@ -17,6 +17,9 @@ from planet.control.abstract import AbstractEnvironment
 #from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
 
+IS_TESTING = False
+planning_time_pickle = "planning_times.p"
+
 
 context = zmq.Context()
 #  Socket to talk to server
@@ -224,6 +227,16 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
     def step(self, action, random_obs=False, action_is_vector=False):
         t0 = time.time()
+        
+        if IS_TESTING:
+            try:
+                planning_times = pickle.load(open(planning_time_pickle, "rb"))
+                planning_times.append(('stanford_client_start', t0))
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+            except Exception:
+                planning_times = [('stanford_client_start', t0)]
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+
         # random_obs = True only for debugging purposes
         episode_length = sep.max_steps
         curr_state = self.state
@@ -281,8 +294,17 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
         info = {}
         t1 = time.time()
-        print("Time to step", t1-t0)
-        print("Done", self.done)
+
+        if IS_TESTING:
+            try:
+                planning_times = pickle.load(open(planning_time_pickle, "rb"))
+                planning_times.append(('stanford_client_end', t1))
+                planning_times.append(('stanford_client_done', self.done))
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+            except Exception:
+                planning_times = [('stanford_client_end', t1), ('stanford_client_done', self.done)]
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+
         return obs, reward, self.done, info
     
     def point_to_map(self, pos_2, cast_to_int=True):

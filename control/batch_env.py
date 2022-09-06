@@ -23,6 +23,9 @@ import time
 #from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
 
+IS_TESTING = False
+planning_time_pickle = "planning_times.p"
+
 
 class BatchEnv(object):
   """Combine multiple environments to step them in batch."""
@@ -131,34 +134,27 @@ class BatchEnv(object):
     """
     for index, (env, action) in enumerate(zip(self._envs, actions)):
       if not env.action_space.contains(action):
-        #print("ENV ACTION SPACE", env.action_space)
         message = 'Invalid action at index {}: {}'
         raise ValueError(message.format(index, action))
-    if self._blocking:
+    if self._blocking: # This is expected to be false!
       transitions = [
           env.step(action)
           for env, action in zip(self._envs, actions)]
     else:
       print("\nGoing to enter env.step now\n")
       t0 = time.time()
-      try:
-          pickle_time0 = time.time()
-          planning_times = pickle.load(open("planning_times.p", "rb"))
-          print("Elapsed time", t0-planning_times[-1])
-          planning_times.append(t0)
-          pickle.dump(planning_times, open("planning_times.p", "wb"))
-          pickle_time1 = time.time()
-          print("Pickling time", pickle_time1-pickle_time0)
-      except Exception:
-          planning_times = [t0]
-          pickle.dump(planning_times, open("planning_times.p", "wb"))
+      if IS_TESTING:
+        try:
+            planning_times = pickle.load(open(planning_time_pickle, "rb"))
+            planning_times.append(('batch_env', t0))
+            pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+        except Exception:
+            planning_times = [('batch_env', t0)]
+            pickle.dump(planning_times, open(planning_time_pickle, "wb"))
 
       transitions = [
           env.step(action, blocking=False)
           for env, action in zip(self._envs, actions)]
-      # transitions = [
-      #     env.step(action)
-      #     for env, action in zip(self._envs, actions)]
       transitions = [transition() for transition in transitions]
     observs, rewards, dones, infos = zip(*transitions)
     observ = np.stack(observs)
@@ -182,10 +178,7 @@ class BatchEnv(object):
       observs = [self._envs[index].reset() for index in indices]
     else:
       print("\nGoing to enter env.reset now\n")
-      #print(self._envs)
       observs = [self._envs[index].reset(blocking=False) for index in indices]
-      #observs = [self._envs[index].reset() for index in indices]
-      #print("OBSERVS", observs)
       observs = [observ() for observ in observs]
     observ = np.stack(observs)
     return observ
