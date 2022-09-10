@@ -95,6 +95,7 @@ def collect_rollouts(
   def simulate_fn(unused_last, step):
     done, score, step_time, unused_summary = simulate_step(
        batch_env, agent,
+       agent_config,
        log=False,
        reset=tf.equal(step, 0))
     
@@ -167,7 +168,7 @@ def define_batch_env(env_ctor, num_agents, isolate_envs):
   return env 
 
 
-def simulate_step(batch_env, algo, log=True, reset=False):
+def simulate_step(batch_env, algo, agent_config, log=True, reset=False):
   """Simulation step of a vectorized algorithm with in-graph environments.
 
   Integrates the operations implemented by the algorithm and the environments
@@ -225,14 +226,27 @@ def simulate_step(batch_env, algo, log=True, reset=False):
       inc_length = length_var.assign_add(tf.zeros(len(batch_env), tf.int32))
     # t = batch_env.timer()
     action, step_summary = algo.perform(agent_indices, prevob, batch_env)
+    # observ = agent_config.preprocess_fn(prevob)
+    # embedded = agent_config.encoder({'image': observ[:, None]})[:, 0]
     #print("INSIDE DEFINE STEP", action)
     action.set_shape(batch_env.action.shape)
-    with tf.control_dependencies([batch_env.step(action)]):
+    with tf.control_dependencies([batch_env.step(action, agent_config, prevob)]):
       add_score = score_var.assign_add(batch_env.reward)
       inc_length = length_var.assign_add(tf.ones(len(batch_env), tf.int32))
       step_time = step_time_var.assign(new_time - last_time)
       # last_time.assign(new_time)
       print("DEFINE STEP: STEP TIME T0 T1", step_time)
+    
+    # # Print to stdout an analysis of the memory usage and the timing information
+    # # broken down by operation types.
+    # # subgraph = tf.graph_util.extract_sub_graph(tf.get_default_graph(), "graph/encoder/")
+    # run_metadata = tf.RunMetadata()
+    # tf.profiler.profile(
+    #     tf.get_default_graph(),
+    #     run_meta=run_metadata,
+    #     cmd='op',
+    #     options=tf.profiler.ProfileOptionBuilder.time_and_memory())
+
     with tf.control_dependencies([add_score, inc_length]):
       agent_indices = tf.range(len(batch_env))
       experience_summary = algo.experience(

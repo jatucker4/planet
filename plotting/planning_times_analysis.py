@@ -22,17 +22,21 @@ num_steps = 0
 done = False
 while i < len(planning_times):
     batch_env_start = planning_times[i][1]
-    stanford_client_start = planning_times[i + 1][1]
-    stanford_client_end = planning_times[i + 2][1]
-    stanford_client_done = planning_times[i + 3][1]
+    encoder = planning_times[i + 1][1]
+    stanford_client_start = planning_times[i + 2][1]
+    stanford_client_end = planning_times[i + 3][1]
+    stanford_client_done = planning_times[i + 4][1]
     
 
     to_subtract = stanford_client_end - stanford_client_start  # Time spent stepping in environment
+    to_subtract += 2 * encoder  # Time spent running the encoder, once in batch_env and once for real
     if batch_env_start != prev_time:
         step_time = batch_env_start - prev_time
         step_time -= to_subtract
     else:
         step_time = 0
+    
+    print("STEP TIME", step_time)
     
     if not stanford_client_done:
         done = False
@@ -54,7 +58,7 @@ while i < len(planning_times):
             done = True
 
     prev_time = batch_env_start
-    i += 4
+    i += 5
 
 # print(planning_times_per_episode)
 planning_times_per_episode = np.array(planning_times_per_episode)

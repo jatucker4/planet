@@ -18,12 +18,14 @@ from __future__ import print_function
 
 import numpy as np
 import pickle
+import tensorflow as tf
 import time
 
 #from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
+from planet.networks.conv_ha import encoder as enc
 
-IS_TESTING = False
+IS_TESTING = True
 planning_time_pickle = "planning_times.p"
 
 
@@ -120,7 +122,7 @@ class BatchEnv(object):
     print("Batch env timer", t)
     return t
 
-  def step(self, actions):
+  def step(self, actions, agent_config, prevob):
     """Forward a batch of actions to the wrapped environments.
 
     Args:
@@ -132,6 +134,7 @@ class BatchEnv(object):
     Returns:
       Batch of observations, rewards, and done flags.
     """
+
     for index, (env, action) in enumerate(zip(self._envs, actions)):
       if not env.action_space.contains(action):
         message = 'Invalid action at index {}: {}'
@@ -150,6 +153,31 @@ class BatchEnv(object):
             pickle.dump(planning_times, open(planning_time_pickle, "wb"))
         except Exception:
             planning_times = [('batch_env', t0)]
+            pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+      
+      if IS_TESTING:
+        print("\nTiming the encoder forward pass\n")
+        
+        kwargs = dict(create_scope_now_=True)
+        self.encz = tf.make_template('encz', enc, **kwargs)
+
+        tenc0 = time.time()
+        observ = agent_config.preprocess_fn(prevob)
+        # observ = prevob
+        #encoder = tf.get_variable("graph/encoder/conv2d/kernel")
+        # print("OBSERV", observ)
+        #print("ENCODER 1", agent_config.encoder)
+        # print("ENCODER 2", observ[:, None].shape[2:])
+        # with tf.variable_scope('', reuse=tf.AUTO_REUSE):
+        # print("ENCODER 3", encz({'image': tf.convert_to_tensor(observ[:, None])})[:, 0])
+        embedded = self.encz({'image': tf.convert_to_tensor(observ[:, None])})[:, 0]
+        tenc1 = time.time()
+        try:
+            planning_times = pickle.load(open(planning_time_pickle, "rb"))
+            planning_times.append(('encoder', tenc1-tenc0))
+            pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+        except Exception:
+            planning_times = [('encoder', tenc1-tenc0)]
             pickle.dump(planning_times, open(planning_time_pickle, "wb"))
 
       transitions = [

@@ -76,6 +76,11 @@ class MPCAgent(object):
         embedded.shape[1:].as_list(),
         prev_action.shape[1:].as_list())
     action = action[:, 0]
+    import timeit
+    print("\nTIMEIT\n", timeit.timeit(lambda: self._config.planner(
+        self._cell, self._config.objective, state,
+        embedded.shape[1:].as_list(),
+        prev_action.shape[1:].as_list()), number=1))
     #print("INSIDE PERFORM", action)
     if self._config.exploration:
       scale = self._config.exploration.scale

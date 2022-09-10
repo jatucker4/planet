@@ -17,7 +17,7 @@ from planet.control.abstract import AbstractEnvironment
 #from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
 
-IS_TESTING = False
+IS_TESTING = True
 planning_time_pickle = "planning_times.p"
 
 

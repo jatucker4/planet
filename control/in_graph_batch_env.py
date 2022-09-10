@@ -108,7 +108,7 @@ class InGraphBatchEnv(object):
     self._time = self._time.assign(t)
     return tf.identity(self._time)
 
-  def step(self, action):
+  def step(self, action, agent_config, prevob):
     """Step the batch of environments.
 
     The results of the step can be accessed from the variables defined below.
@@ -123,7 +123,7 @@ class InGraphBatchEnv(object):
     with tf.name_scope('environment/simulate'):
       observ_dtype = self._parse_dtype(self._batch_env.observation_space)
       observ, reward, done = tf.py_func(
-          lambda a: self._batch_env.step(a)[:3], [action],
+          lambda a, prevob: self._batch_env.step(a, agent_config, prevob)[:3], [action, prevob],
           [observ_dtype, tf.float32, tf.bool], name='step')
       # reward = tf.cast(reward, tf.float32)
       #print("SHAPES", action.shape, self._action.shape)
