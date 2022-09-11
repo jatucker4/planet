@@ -102,8 +102,6 @@ def define_summaries(graph, config, cleanups):
     for name, params in config.test_collects.items():
       # These are expensive and equivalent for train and test phases, so only
       # do one of them.
-      newz_time = tf.Variable(lambda: tf.timestamp(), trainable=False)
-
       sim_summary, sim_return = tf.cond(
           tf.equal(graph.phase, 'test'),
           lambda: utility.simulate_episodes(
@@ -111,24 +109,8 @@ def define_summaries(graph, config, cleanups):
               expensive_summaries=False,
               gif_summary=True,
               name=name),
-          # lambda: utility.simulate_episodes(
-          #     config, params, graph, cleanups,
-          #     expensive_summaries=False,
-          #     gif_summary=True,
-          #     name=name,
-          #     batchenv=batchenv,
-          #     donee=donee,
-          #     scoree=scoree),
           lambda: ('', 0.0),
           name='should_simulate_' + params.task.name)
-      
-      newzier_time = tf.timestamp()
-      diffz_time = newzier_time - newz_time
-      with tf.control_dependencies([diffz_time]):
-        assign_ops = [newz_time.assign(newzier_time)]
-        with tf.control_dependencies(assign_ops):
-          summaries.append(tf.summary.scalar(
-              'sampada_seconds_per_step', diffz_time/delta_step))
 
 
       summaries.append(sim_summary)

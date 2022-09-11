@@ -41,10 +41,6 @@ class MPCAgent(object):
         'prev_action_var', shape=self._batch_env.action.shape,
         initializer=lambda *_, **__: tf.zeros_like(self._batch_env.action),
         use_resource=True)
-    self._dummy_action = tf.get_local_variable(
-        'dummy_action_var', shape=self._batch_env.action.shape,
-        initializer=lambda *_, **__: tf.zeros_like(self._batch_env.action),
-        use_resource=True)
 
   def begin_episode(self, agent_indices):
     state = nested.map(
@@ -58,30 +54,21 @@ class MPCAgent(object):
     with tf.control_dependencies(reset_state + (reset_prev_action,)):
       return tf.constant('')
 
-  def perform(self, agent_indices, observ, batch_env):
-    # batch_env.timer()
+  def perform(self, agent_indices, observ):
     observ = self._config.preprocess_fn(observ)
     embedded = self._config.encoder({'image': observ[:, None]})[:, 0]
     state = nested.map(
         lambda tensor: tf.gather(tensor, agent_indices),
         self._state)
     prev_action = self._prev_action + 0
-    dummy_action = self._dummy_action + 0
     with tf.control_dependencies([prev_action]):
       use_obs = tf.ones(tf.shape(agent_indices), tf.bool)[:, None]
       _, state = self._cell((embedded, prev_action, use_obs), state)
-    # batch_env.timer()
     action = self._config.planner(
         self._cell, self._config.objective, state,
         embedded.shape[1:].as_list(),
         prev_action.shape[1:].as_list())
     action = action[:, 0]
-    import timeit
-    print("\nTIMEIT\n", timeit.timeit(lambda: self._config.planner(
-        self._cell, self._config.objective, state,
-        embedded.shape[1:].as_list(),
-        prev_action.shape[1:].as_list()), number=1))
-    #print("INSIDE PERFORM", action)
     if self._config.exploration:
       scale = self._config.exploration.scale
       if self._config.exploration.schedule:
@@ -89,7 +76,6 @@ class MPCAgent(object):
       action = tfd.Normal(action, scale).sample()
     action = tf.clip_by_value(action, -1, 1)
     remember_action = self._prev_action.assign(action)
-    dummy_remember_action = self._dummy_action.assign(action)
     remember_state = nested.map(
         lambda var, val: tf.scatter_update(var, agent_indices, val),
         self._state, state, flatten=True)

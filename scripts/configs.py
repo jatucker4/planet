@@ -206,10 +206,10 @@ def _loss_functions(config, params):
 
 def _training_schedule(config, params):
   config.is_testing = IS_TESTING
-  config.train_steps = int(params.get('train_steps', 200))
+  config.train_steps = int(params.get('train_steps', 1000)) 
   config.test_steps = int(params.get('test_steps', 50))
   # config.max_steps = int(params.get('max_steps', 5e7))
-  config.max_steps = int(params.get('max_steps', 400))
+  config.max_steps = int(params.get('max_steps', 7000000))
   config.train_log_every = config.train_steps
   # config.train_checkpoint_every = None
   config.train_checkpoint_every = 100000
@@ -245,7 +245,7 @@ def _initial_collection(config, params):
   if IS_TESTING:
     num_seed_episodes = params.get('num_seed_episodes', 1)
   else:
-    num_seed_episodes = params.get('num_seed_episodes', 1)
+    num_seed_episodes = params.get('num_seed_episodes', 5)
   
   sims = tools.AttrDict(_unlocked=True)
   for task in config.tasks:

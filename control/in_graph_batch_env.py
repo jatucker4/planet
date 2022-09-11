@@ -99,7 +99,6 @@ class InGraphBatchEnv(object):
     return self._batch_env[index]
 
   def timer(self):
-    print("\nIN HERE\n")
     with tf.name_scope('environment/simulate'):
       t = tf.py_func(
           lambda num: self._batch_env.timer(num), [0],
@@ -119,7 +118,6 @@ class InGraphBatchEnv(object):
     Returns:
       Operation.
     """
-    print("\nNOW IN HERE\n")
     with tf.name_scope('environment/simulate'):
       observ_dtype = self._parse_dtype(self._batch_env.observation_space)
       observ, reward, done = tf.py_func(

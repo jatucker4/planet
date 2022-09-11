@@ -57,31 +57,6 @@ class BatchEnv(object):
     action_space = self._envs[0].action_space
     if not all(env.action_space == action_space for env in self._envs):
       raise ValueError('All environments must use the same observation space.')
-
-
-  # def __init__(self, factory, env_ctor, num_agents, blocking):
-  #   """Combine multiple environments to step them in batch.
-
-  #   To step environments in parallel, environments must support a
-  #   `blocking=False` argument to their step and reset functions that makes them
-  #   return callables instead to receive the result at a later time.
-
-  #   Args:
-  #     envs: List of environments.
-  #     blocking: Step environments after another rather than in parallel.
-
-  #   Raises:
-  #     ValueError: Environments have different observation or action spaces.
-  #   """
-  #   self._envs = [factory(env_ctor) for _ in range(num_agents)]
-  #   print("\nI got here, here are the envs!", self._envs, blocking, "\n")
-  #   self._blocking = blocking
-  #   observ_space = self._envs[0].observation_space
-  #   if not all(env.observation_space == observ_space for env in self._envs):
-  #     raise ValueError('All environments must use the same observation space.')
-  #   action_space = self._envs[0].action_space
-  #   if not all(env.action_space == action_space for env in self._envs):
-  #     raise ValueError('All environments must use the same observation space.')
   
   @classmethod
   def get_my_env(cls, envs, blocking):
@@ -163,13 +138,6 @@ class BatchEnv(object):
 
         tenc0 = time.time()
         observ = agent_config.preprocess_fn(prevob)
-        # observ = prevob
-        #encoder = tf.get_variable("graph/encoder/conv2d/kernel")
-        # print("OBSERV", observ)
-        #print("ENCODER 1", agent_config.encoder)
-        # print("ENCODER 2", observ[:, None].shape[2:])
-        # with tf.variable_scope('', reuse=tf.AUTO_REUSE):
-        # print("ENCODER 3", encz({'image': tf.convert_to_tensor(observ[:, None])})[:, 0])
         embedded = self.encz({'image': tf.convert_to_tensor(observ[:, None])})[:, 0]
         tenc1 = time.time()
         try:
