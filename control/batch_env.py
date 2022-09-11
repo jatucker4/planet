@@ -25,7 +25,7 @@ import time
 from planet.humanav_examples.examples import *
 from planet.networks.conv_ha import encoder as enc
 
-IS_TESTING = True
+IS_TESTING = False
 planning_time_pickle = "planning_times.p"
 
 

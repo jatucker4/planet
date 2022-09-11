@@ -93,7 +93,7 @@ def plot_rgb_retimg(rgb_image_1mk3):
 
     src = rgb_image_1mk3[0].astype(np.uint8)
     #percent by which the image is resized
-    scale_percent = (64./src.shape[0]) * 100
+    scale_percent = (32./src.shape[0]) * 100
 
     width = int(src.shape[1] * scale_percent / 100)
     height = int(src.shape[0] * scale_percent / 100)
