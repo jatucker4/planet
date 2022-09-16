@@ -174,10 +174,10 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
     @property
     def observation_space(self):  ## TODO Include pixel wrapper and don't normalize
-        # low = np.zeros([64, 64, 3], dtype=np.float32)
-        # high = np.ones([64, 64, 3], dtype=np.float32)
-        low = np.zeros([32, 32, 3], dtype=np.float32)
-        high = np.ones([32, 32, 3], dtype=np.float32)
+        low = np.zeros([64, 64, 3], dtype=np.float32)
+        high = np.ones([64, 64, 3], dtype=np.float32)
+        # low = np.zeros([32, 32, 3], dtype=np.float32)
+        # high = np.ones([32, 32, 3], dtype=np.float32)
         spaces = {'image': gym.spaces.Box(low, high)}
         return gym.spaces.Dict(spaces)
 
@@ -264,6 +264,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
     
         cond_hit = self.detect_collision(next_state)
 
+        '''
         # Previous value of reached_goal 
         temp_reached_goal = self.reached_goal
 
@@ -289,8 +290,24 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         if not temp_reached_goal:
             cond_false = self.in_trap(next_state)
             reward -= sep.epi_reward * cond_false
+        '''
 
         self.done = self._step >= episode_length - 1
+
+        reward = 0
+        if self.in_goal(next_state):
+            self.state = next_state
+            self.orientation = new_theta
+            # self.done = True
+            reward += sep.epi_reward
+            self.reached_goal = True
+        elif cond_hit == False:
+            self.state = next_state
+            self.orientation = new_theta
+        # reward = sep.epi_reward * self.done
+
+        cond_false = self.in_trap(next_state)
+        reward -= sep.epi_reward * cond_false
 
         info = {}
         t1 = time.time()
