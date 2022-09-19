@@ -173,7 +173,8 @@ def simulate_step(batch_env, algo, agent_config, log=True, reset=False):
     agent_indices = tf.range(len(batch_env))
     action, step_summary = algo.perform(agent_indices, prevob)
     action.set_shape(batch_env.action.shape)
-    with tf.control_dependencies([batch_env.step(action, agent_config, prevob)]):
+    # with tf.control_dependencies([batch_env.step(action, agent_config, prevob)]):
+    with tf.control_dependencies([batch_env.step(action)]):
       add_score = score_var.assign_add(batch_env.reward)
       inc_length = length_var.assign_add(tf.ones(len(batch_env), tf.int32))
 

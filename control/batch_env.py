@@ -97,7 +97,8 @@ class BatchEnv(object):
     print("Batch env timer", t)
     return t
 
-  def step(self, actions, agent_config, prevob):
+  # def step(self, actions, agent_config, prevob):
+  def step(self, actions):
     """Forward a batch of actions to the wrapped environments.
 
     Args:
@@ -130,23 +131,23 @@ class BatchEnv(object):
             planning_times = [('batch_env', t0)]
             pickle.dump(planning_times, open(planning_time_pickle, "wb"))
       
-      if IS_TESTING:
-        print("\nTiming the encoder forward pass\n")
+      # if IS_TESTING:
+      #   print("\nTiming the encoder forward pass\n")
         
-        kwargs = dict(create_scope_now_=True)
-        self.encz = tf.make_template('encz', enc, **kwargs)
+      #   kwargs = dict(create_scope_now_=True)
+      #   self.encz = tf.make_template('encz', enc, **kwargs)
 
-        tenc0 = time.time()
-        observ = agent_config.preprocess_fn(prevob)
-        embedded = self.encz({'image': tf.convert_to_tensor(observ[:, None])})[:, 0]
-        tenc1 = time.time()
-        try:
-            planning_times = pickle.load(open(planning_time_pickle, "rb"))
-            planning_times.append(('encoder', tenc1-tenc0))
-            pickle.dump(planning_times, open(planning_time_pickle, "wb"))
-        except Exception:
-            planning_times = [('encoder', tenc1-tenc0)]
-            pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+      #   tenc0 = time.time()
+      #   observ = agent_config.preprocess_fn(prevob)
+      #   embedded = self.encz({'image': tf.convert_to_tensor(observ[:, None])})[:, 0]
+      #   tenc1 = time.time()
+      #   try:
+      #       planning_times = pickle.load(open(planning_time_pickle, "rb"))
+      #       planning_times.append(('encoder', tenc1-tenc0))
+      #       pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+      #   except Exception:
+      #       planning_times = [('encoder', tenc1-tenc0)]
+      #       pickle.dump(planning_times, open(planning_time_pickle, "wb"))
 
       transitions = [
           env.step(action, blocking=False)
