@@ -249,6 +249,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
     
         cond_hit = self.detect_collision(next_state)
 
+        '''
         # Previous value of reached_goal 
         temp_reached_goal = self.reached_goal
 
@@ -274,8 +275,24 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         if not temp_reached_goal:
             cond_false = self.in_trap(next_state)
             reward -= sep.epi_reward * cond_false
+        '''
 
         self.done = self._step >= episode_length - 1
+
+        reward = 0
+        if self.in_goal(next_state):
+            self.state = next_state
+            self.orientation = new_theta
+            # self.done = True
+            reward += sep.epi_reward
+            self.reached_goal = True
+        elif cond_hit == False:
+            self.state = next_state
+            self.orientation = new_theta
+        # reward = sep.epi_reward * self.done
+
+        cond_false = self.in_trap(next_state)
+        reward -= sep.epi_reward * cond_false
 
         info = {}
         return obs, reward, self.done, info
@@ -372,12 +389,12 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             plt.imshow(out)
             fig.savefig("NOISY_RECEIVED_OBS.png", bbox_inches='tight', pad_inches=0)
 
-        rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
-        img_rslice = (out[:, :, 0] - rmean)/rstd
-        img_gslice = (out[:, :, 1] - gmean)/gstd
-        img_bslice = (out[:, :, 2] - bmean)/bstd
+        # rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
+        # img_rslice = (out[:, :, 0] - rmean)/rstd
+        # img_gslice = (out[:, :, 1] - gmean)/gstd
+        # img_bslice = (out[:, :, 2] - bmean)/bstd
 
-        out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
+        # out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
 
         #out = (out - out.mean())/out.std()  # "Normalization" -- TODO
 
