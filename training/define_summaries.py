@@ -109,16 +109,10 @@ def define_summaries(graph, config, cleanups):
               expensive_summaries=False,
               gif_summary=True,
               name=name),
-          # lambda: utility.simulate_episodes(
-          #     config, params, graph, cleanups,
-          #     expensive_summaries=False,
-          #     gif_summary=True,
-          #     name=name,
-          #     batchenv=batchenv,
-          #     donee=donee,
-          #     scoree=scoree),
           lambda: ('', 0.0),
           name='should_simulate_' + params.task.name)
+
+
       summaries.append(sim_summary)
       sim_returns.append(sim_return)
 

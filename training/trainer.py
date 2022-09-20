@@ -103,7 +103,7 @@ class Trainer(object):
       checkpoint: Checkpoint name to load; None for newest.
     """
     variables = tools.filter_variables(include, exclude)
-    saver = tf.train.Saver(variables, max_to_keep=20, keep_checkpoint_every_n_hours=2)
+    saver = tf.train.Saver(variables, max_to_keep=16, keep_checkpoint_every_n_hours=2)
     if load:
       self._loaders.append(saver)
     if save:
@@ -202,7 +202,29 @@ class Trainer(object):
             phase_step, phase.batch_size, phase.log_every)
         phase.feed[self._report] = self._is_every_steps(
             phase_step, phase.batch_size, phase.report_every)
+        
         summary, mean_score, global_step = sess.run(phase.op, phase.feed)
+        # run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+        # run_metadata = tf.RunMetadata()
+        # summary, mean_score, global_step = sess.run(phase.op, phase.feed, options=run_options, run_metadata=run_metadata)
+        # output_tag = "blah-{}"
+        # phase.writer.add_run_metadata(run_metadata, output_tag.format(global_step))
+        # Create the Timeline object, and write it to a json
+        # from tensorflow.python.client import timeline
+        # tl = timeline.Timeline(run_metadata.step_stats)
+        # ctf = tl.generate_chrome_trace_format()
+        # with open('timeline.json', 'w') as f:
+        #     f.write(ctf)
+        
+        # Print to stdout an analysis of the memory usage and the timing information
+        # broken down by operation types.
+        # subgraph = tf.graph_util.extract_sub_graph(tf.get_default_graph(), "graph/encoder/")
+        # tf.profiler.profile(
+        #     tf.get_default_graph(),
+        #     run_meta=run_metadata,
+        #     cmd='op',
+        #     options=tf.profiler.ProfileOptionBuilder.time_and_memory())
+
         print("SUMMARY, MEAN SCORE, GLOBAL_STEP", summary, mean_score, global_step, "\n")
         if self._is_every_steps(
             phase_step, phase.batch_size, phase.checkpoint_every):

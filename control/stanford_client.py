@@ -1,10 +1,11 @@
 import cv2
 import glob
+import gym
 import numpy as np
 import os
 import pickle
 import random
-import gym
+import time
 import zlib
 import zmq 
 
@@ -15,6 +16,9 @@ from planet.control.abstract import AbstractEnvironment
 
 #from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
+
+IS_TESTING = False
+planning_time_pickle = "planning_times.p"
 
 
 context = zmq.Context()
@@ -170,10 +174,10 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
     @property
     def observation_space(self):  ## TODO Include pixel wrapper and don't normalize
-        # low = np.zeros([64, 64, 3], dtype=np.float32)
-        # high = np.ones([64, 64, 3], dtype=np.float32)
         low = np.zeros([64, 64, 3], dtype=np.float32)
         high = np.ones([64, 64, 3], dtype=np.float32)
+        # low = np.zeros([32, 32, 3], dtype=np.float32)
+        # high = np.ones([32, 32, 3], dtype=np.float32)
         spaces = {'image': gym.spaces.Box(low, high)}
         return gym.spaces.Dict(spaces)
 
@@ -222,6 +226,17 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         return obs
 
     def step(self, action, random_obs=False, action_is_vector=False):
+        t0 = time.time()
+        
+        if IS_TESTING:
+            try:
+                planning_times = pickle.load(open(planning_time_pickle, "rb"))
+                planning_times.append(('stanford_client_start', t0))
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+            except Exception:
+                planning_times = [('stanford_client_start', t0)]
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+
         # random_obs = True only for debugging purposes
         episode_length = sep.max_steps
         curr_state = self.state
@@ -249,6 +264,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
     
         cond_hit = self.detect_collision(next_state)
 
+        '''
         # Previous value of reached_goal 
         temp_reached_goal = self.reached_goal
 
@@ -274,10 +290,38 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         if not temp_reached_goal:
             cond_false = self.in_trap(next_state)
             reward -= sep.epi_reward * cond_false
+        '''
 
         self.done = self._step >= episode_length - 1
 
+        reward = 0
+        if self.in_goal(next_state):
+            self.state = next_state
+            self.orientation = new_theta
+            # self.done = True
+            reward += sep.epi_reward
+            self.reached_goal = True
+        elif cond_hit == False:
+            self.state = next_state
+            self.orientation = new_theta
+        # reward = sep.epi_reward * self.done
+
+        cond_false = self.in_trap(next_state)
+        reward -= sep.epi_reward * cond_false
+
         info = {}
+        t1 = time.time()
+
+        if IS_TESTING:
+            try:
+                planning_times = pickle.load(open(planning_time_pickle, "rb"))
+                planning_times.append(('stanford_client_end', t1))
+                planning_times.append(('stanford_client_done', self.done))
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+            except Exception:
+                planning_times = [('stanford_client_end', t1), ('stanford_client_done', self.done)]
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+
         return obs, reward, self.done, info
     
     def point_to_map(self, pos_2, cast_to_int=True):
@@ -372,12 +416,12 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             plt.imshow(out)
             fig.savefig("NOISY_RECEIVED_OBS.png", bbox_inches='tight', pad_inches=0)
 
-        rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
-        img_rslice = (out[:, :, 0] - rmean)/rstd
-        img_gslice = (out[:, :, 1] - gmean)/gstd
-        img_bslice = (out[:, :, 2] - bmean)/bstd
+        # rmean, gmean, bmean, rstd, gstd, bstd = normalization_data
+        # img_rslice = (out[:, :, 0] - rmean)/rstd
+        # img_gslice = (out[:, :, 1] - gmean)/gstd
+        # img_bslice = (out[:, :, 2] - bmean)/bstd
 
-        out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
+        # out = np.stack([img_rslice, img_gslice, img_bslice], axis=-1)
 
         #out = (out - out.mean())/out.std()  # "Normalization" -- TODO
 
