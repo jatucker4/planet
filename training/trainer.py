@@ -218,7 +218,7 @@ class Trainer(object):
           # that their graphs are aligned.
           longest_phase = max(phase_.steps for phase_ in self._phases)
           summary_step = epoch * longest_phase + steps_in
-          phase.writer.add_summary(summary, summary_step)
+          # phase.writer.add_summary(summary, summary_step)
         if self._is_every_steps(
             phase_step, phase.batch_size, phase.restore_every):
           self._initialize_variables(

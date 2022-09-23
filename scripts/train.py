@@ -38,7 +38,9 @@ from __future__ import print_function
 import argparse
 import functools
 import os
+import pickle
 import sys
+import time
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
@@ -66,6 +68,8 @@ def process(logdir, args):
   config = tools.AttrDict()
   with config.unlocked:
     config = getattr(configs, args.config)(config, args.params)
+  t0 = time.time()
+  print("\nSTART TRAINING", "\n")
   training.utility.collect_initial_episodes(config)
   tf.reset_default_graph()
   dataset = tools.numpy_episodes.numpy_episodes(
@@ -77,6 +81,9 @@ def process(logdir, args):
   for score in training.utility.train(
       training.define_model, dataset, logdir, config):
     yield score
+  t1 = time.time()
+  print("\nEND TRAINING", t1-t0, "\n")
+  pickle.dump(t1-t0, open("training_time.p", "wb"))
 
 
 def main(args):
