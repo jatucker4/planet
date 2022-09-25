@@ -59,7 +59,6 @@ from planet.scripts import configs
 import numpy as np
 TF_SEED = 1
 NP_SEED = 1
-RANDOM_SEED = 1
 
 
 def process(logdir, args):
@@ -100,9 +99,8 @@ def main(args):
 
 
 if __name__ == '__main__':
-  #tf.compat.v1.set_random_seed(TF_SEED)
-  #np.random.seed(NP_SEED)
-  #random.seed(RANDOM_SEED)
+  tf.compat.v1.set_random_seed(TF_SEED)
+  np.random.seed(NP_SEED)
 
   boolean = lambda x: bool(['False', 'True'].index(x))
   parser = argparse.ArgumentParser()

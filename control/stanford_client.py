@@ -15,6 +15,7 @@ from planet.control.abstract import AbstractEnvironment
 
 #from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
+from planet.plotting import stanford_viz
 
 
 context = zmq.Context()
@@ -105,6 +106,9 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         self.traversible = traversible
         self.dx = dx_m
         self.map_origin = [0, 0]
+
+        # Logging
+        self.episode = {'reward': [], 'reached_goal': []}
 
         # For making training batches
         self.training_data_path = sep.training_data_path
@@ -284,7 +288,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             cond_false = self.in_trap(next_state)
             reward -= sep.epi_reward * cond_false
         '''
-
+        
         self.done = self._step >= episode_length - 1
 
         reward = 0
@@ -301,6 +305,10 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
         cond_false = self.in_trap(next_state)
         reward -= sep.epi_reward * cond_false
+
+        # Logging
+        self.episode['reward'].append(reward)
+        self.episode['reached_goal'].append(self.reached_goal)
 
         info = {}
         return obs, reward, self.done, info
@@ -539,5 +547,11 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             #print("Done preprocessing")
 
             return rmean, gmean, bmean, rstd, gstd, bstd
+    
+    def visualize_learning(self, folder):
+        self.episode['reward'] = np.array(self.episode['reward'])
+        self.episode['reached_goal'] = np.array(self.episode['reached_goal'])
+        stanford_viz.visualize_learning(self.episode, folder)
+        self.episode = {'reward': [], 'reached_goal': []}
 
     

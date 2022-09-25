@@ -754,7 +754,7 @@ class CollectGymDataset(object):
                     inner_env.test_trap_x[1], 
                     inner_env.test_trap_y[1]]
     stanford_viz.plot_maze(episode, folder, name, test_traps)
-    stanford_viz.visualize_learning(episode, folder)
+    self._env._env._env.visualize_learning(folder)
 
 
 class ConvertTo32Bit(object):
