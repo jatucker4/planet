@@ -234,12 +234,12 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
         episode_length = sep.max_steps
         curr_state = self.state
-        
+
         # If in the last step the agent reached the goal, now reset the env
         if self.reached_goal:
             obs = self.reset()
             reward = 0
-            self.done = self._step >= episode_length - 1
+            self.done = False
             info = {}
             return obs, reward, self.done, info
 
