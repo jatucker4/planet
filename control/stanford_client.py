@@ -20,7 +20,6 @@ from planet.plotting import stanford_viz
 
 IS_TESTING = True
 planning_time_pickle = "planning_times.p"
-visualize_folder = 'test_episodes'
 
 
 context = zmq.Context()
@@ -232,16 +231,17 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         t0 = time.time()
 
         # random_obs = True only for debugging purposes
+
+        episode_length = sep.max_steps
+        curr_state = self.state
+        
         # If in the last step the agent reached the goal, now reset the env
         if self.reached_goal:
             obs = self.reset()
             reward = 0
-            self.done = False
+            self.done = self._step >= episode_length - 1
             info = {}
             return obs, reward, self.done, info
-
-        episode_length = sep.max_steps
-        curr_state = self.state
 
         # Get the observation at the current state to provide PlaNet the expected output
         if random_obs:
