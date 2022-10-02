@@ -12,7 +12,7 @@ import pickle
 sep = Stanford_Environment_Params()
 env = StanfordEnvironmentClient()
 
-BASE_FOLDER = '092422-1/00001/'
+BASE_FOLDER = '092422-1-testing/00001/'
 
 def plot_maze(episode, figure_name_folder, figure_name_name, test_traps=None):
     #print("\n\nMADE IT", episode, "\n\n")
@@ -88,21 +88,49 @@ def plot_maze(episode, figure_name_folder, figure_name_name, test_traps=None):
 def find_steps_taken(episode):
     step_goal_reached = np.where(episode['reached_goal'] == True)[0]
     if len(step_goal_reached) == 0:
-        return len(episode['reached_goal'])
-    return step_goal_reached[0]
+        return step_goal_reached, [len(episode['reached_goal'])] # Length of episode
+    
+    steps_taken = [step_goal_reached[0]]
+    for i in range(len(step_goal_reached) - 1):
+        # Successive times goal is reached
+        steps_taken.append(step_goal_reached[i + 1] - step_goal_reached[i])
+
+    print("FIND STEPS TAKEN", step_goal_reached, steps_taken)
+
+    # import time
+    # tdum0 = time.time()
+    # while time.time()-tdum0 < 8:
+    #     pass
+
+    return step_goal_reached, steps_taken
 
 
 def dump_pickle(episode, figure_name_folder):
+    step_goal_reached, steps_taken = find_steps_taken(episode)
+
+    if len(step_goal_reached) == 0: 
+        # Agent never reached the goal -- this whole segment is 1 episode
+        rewards = [np.sum(episode['reward'])]
+    else:
+        # There could be multiple episodes within this segment
+        rewards = []
+        start = 0
+        for step in step_goal_reached:
+            # Take the sum of the rewards within this episode
+            reward = np.sum(episode['reward'][start : step + 1])
+            rewards.append(reward)
+            start = step + 1
+
     try:
         episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "rb"))
     except (OSError, IOError) as e:
-        episode_dict = {'reward': [np.sum(episode['reward'])], 
-                        'steps_taken': [find_steps_taken(episode)]}
+        episode_dict = {'reward': rewards, 
+                        'steps_taken': steps_taken}
         pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "wb"))
         return
-
-    episode_dict['reward'].append(np.sum(episode['reward']))
-    episode_dict['steps_taken'].append(find_steps_taken(episode))
+    
+    episode_dict['reward'].extend(rewards)
+    episode_dict['steps_taken'].extend(steps_taken)
     pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "wb"))
 
 def visualize_learning(episode, figure_name_folder):
@@ -130,28 +158,28 @@ def visualize_learning(episode, figure_name_folder):
     plt.savefig(BASE_FOLDER + figure_name_folder + "/steps_taken")
     plt.close()
 
-def dump_pickle_step_time(episode_avg_step_time, figure_name_folder):
-    try:
-        episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "rb"))
-    except (OSError, IOError) as e:
-        episode_dict = {'step_time': [episode_avg_step_time]}
-        pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "wb"))
-        return
+# def dump_pickle_step_time(episode_avg_step_time, figure_name_folder):
+#     try:
+#         episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "rb"))
+#     except (OSError, IOError) as e:
+#         episode_dict = {'step_time': [episode_avg_step_time]}
+#         pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "wb"))
+#         return
 
-    episode_dict['step_time'].append(episode_avg_step_time)
-    pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "wb"))
+#     episode_dict['step_time'].append(episode_avg_step_time)
+#     pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "wb"))
 
-def visualize_step_time(episode_avg_step_time, figure_name_folder):
-    dump_pickle_step_time(episode_avg_step_time, figure_name_folder)
+# def visualize_step_time(episode_avg_step_time, figure_name_folder):
+#     dump_pickle_step_time(episode_avg_step_time, figure_name_folder)
 
-    episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "rb"))
+#     episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "step_time_info.p", "rb"))
     
-    num_records = len(episode_dict['step_time'])
-    episode_number_list = np.linspace(1, num_records, num_records)
-    plt.figure()
-    ax = plt.axes()
-    ax.plot(episode_number_list, episode_dict['step_time'])
-    plt.xlabel("Episodes")
-    plt.ylabel("Average Step Times")
-    plt.savefig(BASE_FOLDER + figure_name_folder + "/step_times")
-    plt.close()
+#     num_records = len(episode_dict['step_time'])
+#     episode_number_list = np.linspace(1, num_records, num_records)
+#     plt.figure()
+#     ax = plt.axes()
+#     ax.plot(episode_number_list, episode_dict['step_time'])
+#     plt.xlabel("Episodes")
+#     plt.ylabel("Average Step Times")
+#     plt.savefig(BASE_FOLDER + figure_name_folder + "/step_times")
+#     plt.close()

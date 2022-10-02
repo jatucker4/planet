@@ -94,6 +94,7 @@ def collect_rollouts(
   def simulate_fn(unused_last, step):
     done, score, step_time, unused_summary = simulate_step(
        batch_env, agent,
+       agent_config,
        log=False,
        reset=tf.equal(step, 0))
     
@@ -165,7 +166,7 @@ def define_batch_env(env_ctor, num_agents, isolate_envs):
   return env 
 
 
-def simulate_step(batch_env, algo, log=True, reset=False):
+def simulate_step(batch_env, algo, agent_config, log=True, reset=False):
   """Simulation step of a vectorized algorithm with in-graph environments.
 
   Integrates the operations implemented by the algorithm and the environments
@@ -221,7 +222,7 @@ def simulate_step(batch_env, algo, log=True, reset=False):
     print("STEP TIME T0 T1", step_time)
     #print("INSIDE DEFINE STEP", action)
     action.set_shape(batch_env.action.shape)
-    with tf.control_dependencies([batch_env.step(action)]):
+    with tf.control_dependencies([batch_env.step(action, agent_config, prevob)]):
       #print("SCORE VAR", score_var)
       add_score = score_var.assign_add(batch_env.reward)
       inc_length = length_var.assign_add(tf.ones(len(batch_env), tf.int32))

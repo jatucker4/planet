@@ -17,9 +17,16 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
+import pickle
+import tensorflow as tf
+import time
 
 #from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
+from planet.networks.conv_ha import encoder as enc
+
+IS_TESTING = True
+planning_time_pickle = "planning_times.p"
 
 
 class BatchEnv(object):
@@ -50,31 +57,6 @@ class BatchEnv(object):
     action_space = self._envs[0].action_space
     if not all(env.action_space == action_space for env in self._envs):
       raise ValueError('All environments must use the same observation space.')
-
-
-  # def __init__(self, factory, env_ctor, num_agents, blocking):
-  #   """Combine multiple environments to step them in batch.
-
-  #   To step environments in parallel, environments must support a
-  #   `blocking=False` argument to their step and reset functions that makes them
-  #   return callables instead to receive the result at a later time.
-
-  #   Args:
-  #     envs: List of environments.
-  #     blocking: Step environments after another rather than in parallel.
-
-  #   Raises:
-  #     ValueError: Environments have different observation or action spaces.
-  #   """
-  #   self._envs = [factory(env_ctor) for _ in range(num_agents)]
-  #   print("\nI got here, here are the envs!", self._envs, blocking, "\n")
-  #   self._blocking = blocking
-  #   observ_space = self._envs[0].observation_space
-  #   if not all(env.observation_space == observ_space for env in self._envs):
-  #     raise ValueError('All environments must use the same observation space.')
-  #   action_space = self._envs[0].action_space
-  #   if not all(env.action_space == action_space for env in self._envs):
-  #     raise ValueError('All environments must use the same observation space.')
   
   @classmethod
   def get_my_env(cls, envs, blocking):
@@ -110,7 +92,7 @@ class BatchEnv(object):
     """
     return getattr(self._envs[0], name)
 
-  def step(self, actions):
+  def step(self, actions, agent_config, prevob):
     """Forward a batch of actions to the wrapped environments.
 
     Args:
@@ -127,18 +109,44 @@ class BatchEnv(object):
         #print("ENV ACTION SPACE", env.action_space)
         message = 'Invalid action at index {}: {}'
         raise ValueError(message.format(index, action))
-    if self._blocking:
+    if self._blocking: # This is expected to be false!
       transitions = [
           env.step(action)
           for env, action in zip(self._envs, actions)]
     else:
       print("\nGoing to enter env.step now\n")
+
+      t0 = time.time()
+      if IS_TESTING:
+        try:
+          planning_times = pickle.load(open(planning_time_pickle, "rb"))
+          planning_times.append(('batch_env', t0))
+          pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+        except Exception:
+          planning_times = [('batch_env', t0)]
+          pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+
+        print("\nTiming the encoder forward pass\n")
+
+        kwargs = dict(create_scope_now_=True)
+        self.encz = tf.make_template('encz', enc, **kwargs)
+
+        tenc0 = time.time()
+        observ = agent_config.preprocess_fn(prevob)
+        embedded = self.encz({'image': tf.convert_to_tensor(observ[:, None])})[:, 0]
+        tenc1 = time.time()
+        print("ENCODER", tenc1-tenc0)
+        try:
+            planning_times = pickle.load(open(planning_time_pickle, "rb"))
+            planning_times.append(('encoder', tenc1-tenc0))
+            pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+        except Exception:
+            planning_times = [('encoder', tenc1-tenc0)]
+            pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+
       transitions = [
           env.step(action, blocking=False)
           for env, action in zip(self._envs, actions)]
-      # transitions = [
-      #     env.step(action)
-      #     for env, action in zip(self._envs, actions)]
       transitions = [transition() for transition in transitions]
     observs, rewards, dones, infos = zip(*transitions)
     observ = np.stack(observs)
@@ -162,10 +170,7 @@ class BatchEnv(object):
       observs = [self._envs[index].reset() for index in indices]
     else:
       print("\nGoing to enter env.reset now\n")
-      #print(self._envs)
       observs = [self._envs[index].reset(blocking=False) for index in indices]
-      #observs = [self._envs[index].reset() for index in indices]
-      #print("OBSERVS", observs)
       observs = [observ() for observ in observs]
     observ = np.stack(observs)
     return observ

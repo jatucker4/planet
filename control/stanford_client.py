@@ -1,10 +1,11 @@
 import cv2
 import glob
+import gym
 import numpy as np
 import os
 import pickle
 import random
-import gym
+import time
 import zlib
 import zmq 
 
@@ -16,6 +17,10 @@ from planet.control.abstract import AbstractEnvironment
 #from examples.examples import *  # generate_observation
 from planet.humanav_examples.examples import *
 from planet.plotting import stanford_viz
+
+IS_TESTING = True
+planning_time_pickle = "planning_times.p"
+visualize_folder = 'test_episodes'
 
 
 context = zmq.Context()
@@ -174,8 +179,6 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
     @property
     def observation_space(self):  ## TODO Include pixel wrapper and don't normalize
-        # low = np.zeros([64, 64, 3], dtype=np.float32)
-        # high = np.ones([64, 64, 3], dtype=np.float32)
         low = np.zeros([64, 64, 3], dtype=np.float32)
         high = np.ones([64, 64, 3], dtype=np.float32)
         spaces = {'image': gym.spaces.Box(low, high)}
@@ -226,6 +229,8 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         return obs
 
     def step(self, action, random_obs=False, action_is_vector=False):
+        t0 = time.time()
+
         # random_obs = True only for debugging purposes
         # If in the last step the agent reached the goal, now reset the env
         if self.reached_goal:
@@ -310,7 +315,24 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         self.episode['reward'].append(reward)
         self.episode['reached_goal'].append(self.reached_goal)
 
+
         info = {}
+    
+        t1 = time.time()
+
+        if IS_TESTING:
+            try:
+                planning_times = pickle.load(open(planning_time_pickle, "rb"))
+                planning_times.append(('stanford_client', t1-t0))
+                planning_times.append(('stanford_client_reached_goal', self.reached_goal))
+                planning_times.append(('stanford_client_done', self.done))
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+            except Exception:
+                planning_times = [('stanford_client', t1-t0), 
+                                    ('stanford_client_reached_goal', self.reached_goal),
+                                    ('stanford_client_done', self.done)]
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+
         return obs, reward, self.done, info
     
     def point_to_map(self, pos_2, cast_to_int=True):

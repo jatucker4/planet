@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 
-BASE_FOLDER = '00001/test_episodes/' #'072422-2-testing/00001/test_episodes/'
+BASE_FOLDER = '092422-1-testing/00001/test_episodes/' 
 MAX_STEPS = 200
 ACTION_REPEAT = 1
 
