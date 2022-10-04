@@ -198,6 +198,11 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         self._step = 0
         self.state, self.orientation = self.initial_state()
 
+        # Logging
+        reward = 0
+        self.episode['reward'].append(reward)
+        self.episode['reached_goal'].append(self.reached_goal)
+
         # Randomizing the test traps: 
         # Each trap is size 0.5 by 0.5
         # Trap 1 will be randomly placed between x = 0 and 4 (goal x)
@@ -237,10 +242,30 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
         # If in the last step the agent reached the goal, now reset the env
         if self.reached_goal:
-            obs = self.reset()
+            obs = self.reset() # This should set self.reached_goal to False
             reward = 0
             self.done = False
             info = {}
+
+            # Logging
+            self.episode['reward'].append(reward)
+            self.episode['reached_goal'].append(self.reached_goal)
+
+            t1 = time.time()
+
+            if IS_TESTING:
+                try:
+                    planning_times = pickle.load(open(planning_time_pickle, "rb"))
+                    planning_times.append(('stanford_client', t1-t0))
+                    planning_times.append(('stanford_client_reached_goal', self.reached_goal))
+                    planning_times.append(('stanford_client_done', self.done))
+                    pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+                except Exception:
+                    planning_times = [('stanford_client', t1-t0), 
+                                        ('stanford_client_reached_goal', self.reached_goal),
+                                        ('stanford_client_done', self.done)]
+                    pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+
             return obs, reward, self.done, info
 
         # Get the observation at the current state to provide PlaNet the expected output

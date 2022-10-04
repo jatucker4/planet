@@ -88,12 +88,12 @@ def plot_maze(episode, figure_name_folder, figure_name_name, test_traps=None):
 def find_steps_taken(episode):
     step_goal_reached = np.where(episode['reached_goal'] == True)[0]
     if len(step_goal_reached) == 0:
-        return step_goal_reached, [len(episode['reached_goal'])] # Length of episode
+        return step_goal_reached, [len(episode['reached_goal']) - 1] # Length of episode
     
     steps_taken = [step_goal_reached[0]]
     for i in range(len(step_goal_reached) - 1):
         # Successive times goal is reached
-        steps_taken.append(step_goal_reached[i + 1] - step_goal_reached[i])
+        steps_taken.append(step_goal_reached[i + 1] - step_goal_reached[i] - 1)
 
     print("FIND STEPS TAKEN", step_goal_reached, steps_taken)
 
@@ -125,12 +125,14 @@ def dump_pickle(episode, figure_name_folder):
         episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "rb"))
     except (OSError, IOError) as e:
         episode_dict = {'reward': rewards, 
-                        'steps_taken': steps_taken}
+                        'steps_taken': steps_taken,
+                        'step_goal_reached': [step_goal_reached]}
         pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "wb"))
         return
     
     episode_dict['reward'].extend(rewards)
     episode_dict['steps_taken'].extend(steps_taken)
+    episode_dict['step_goal_reached'].append(step_goal_reached)
     pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "wb"))
 
 def visualize_learning(episode, figure_name_folder):
