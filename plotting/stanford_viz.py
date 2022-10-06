@@ -88,11 +88,13 @@ def plot_maze(episode, figure_name_folder, figure_name_name, test_traps=None):
 def find_steps_taken(episode):
     step_goal_reached = np.where(episode['reached_goal'] == True)[0]
     if len(step_goal_reached) == 0:
+        # Minus 1 because the first step is a reset
         return step_goal_reached, [len(episode['reached_goal']) - 1] # Length of episode
     
     steps_taken = [step_goal_reached[0]]
     for i in range(len(step_goal_reached) - 1):
         # Successive times goal is reached
+        # Minus 1 because the first step after reaching a goal is a reset
         steps_taken.append(step_goal_reached[i + 1] - step_goal_reached[i] - 1)
 
     print("FIND STEPS TAKEN", step_goal_reached, steps_taken)

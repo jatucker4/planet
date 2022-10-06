@@ -194,6 +194,8 @@ class StanfordEnvironmentClient(AbstractEnvironment):
     def reset(self, random_obs=False):
         # random_obs = True only for debugging purposes
 
+        t0 = time.time()
+
         self.reached_goal = False
         self._step = 0
         self.state, self.orientation = self.initial_state()
@@ -230,6 +232,19 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             obs = OrderedDict()        
             obs['image'] = obs_nav
 
+        t1 = time.time()
+
+        if IS_TESTING:
+            try:
+                planning_times = pickle.load(open(planning_time_pickle, "rb"))
+                planning_times.append(('reset_stanford_client', t1-t0))
+                planning_times.append(('reset_stanford_client_reached_goal', self.reached_goal))
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+            except Exception:
+                planning_times = [('reset_stanford_client', t1-t0), 
+                                    ('reset_stanford_client_reached_goal', self.reached_goal)]
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+
         return obs
 
     def step(self, action, random_obs=False, action_is_vector=False):
@@ -247,24 +262,24 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             self.done = False
             info = {}
 
-            # Logging
-            self.episode['reward'].append(reward)
-            self.episode['reached_goal'].append(self.reached_goal)
+            # # Logging
+            # self.episode['reward'].append(reward)
+            # self.episode['reached_goal'].append(self.reached_goal)
 
             t1 = time.time()
 
-            if IS_TESTING:
-                try:
-                    planning_times = pickle.load(open(planning_time_pickle, "rb"))
-                    planning_times.append(('stanford_client', t1-t0))
-                    planning_times.append(('stanford_client_reached_goal', self.reached_goal))
-                    planning_times.append(('stanford_client_done', self.done))
-                    pickle.dump(planning_times, open(planning_time_pickle, "wb"))
-                except Exception:
-                    planning_times = [('stanford_client', t1-t0), 
-                                        ('stanford_client_reached_goal', self.reached_goal),
-                                        ('stanford_client_done', self.done)]
-                    pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+            # if IS_TESTING:
+            #     try:
+            #         planning_times = pickle.load(open(planning_time_pickle, "rb"))
+            #         planning_times.append(('stanford_client', t1-t0))
+            #         planning_times.append(('stanford_client_reached_goal', self.reached_goal))
+            #         planning_times.append(('stanford_client_done', self.done))
+            #         pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+            #     except Exception:
+            #         planning_times = [('stanford_client', t1-t0), 
+            #                             ('stanford_client_reached_goal', self.reached_goal),
+            #                             ('stanford_client_done', self.done)]
+            #         pickle.dump(planning_times, open(planning_time_pickle, "wb"))
 
             return obs, reward, self.done, info
 
