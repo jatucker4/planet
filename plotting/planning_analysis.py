@@ -58,6 +58,8 @@ while i < len(planning_times):
             # print("STANFORD CLIENT DONE", stanford_client_done)
         elif planning_times[k][0] == "reset_stanford_client":
             stanford_client += planning_times[k][1]
+            done_counter += 1
+            # print("\nRESET", stanford_client_reached_goal, stanford_client_done, "\n")
     
     to_subtract = 2*encoder  # Time spent running the encoder, once in batch_env and once for real
     to_subtract += stanford_client  # Time spent stepping in environment
