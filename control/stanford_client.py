@@ -19,7 +19,7 @@ from planet.humanav_examples.examples import *
 from planet.plotting import stanford_viz
 
 IS_TESTING = True
-planning_time_pickle = "planning_times.p"
+planning_time_pickle = "planning_times2.p"
 
 
 context = zmq.Context()
@@ -236,9 +236,14 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
         if IS_TESTING:
             try:
+                tpick0 = time.time()
                 planning_times = pickle.load(open(planning_time_pickle, "rb"))
-                planning_times.append(('reset_stanford_client', t1-t0))
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+                tpick1 = time.time()
+                planning_times = pickle.load(open(planning_time_pickle, "rb"))
+                planning_times.append(('reset_stanford_client', t1-t0, tpick1-tpick0))
                 planning_times.append(('reset_stanford_client_reached_goal', self.reached_goal))
+                # planning_times.append(('pickle', tpick1-tpick0))
                 pickle.dump(planning_times, open(planning_time_pickle, "wb"))
             except Exception:
                 planning_times = [('reset_stanford_client', t1-t0), 
@@ -262,24 +267,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             self.done = False
             info = {}
 
-            # # Logging
-            # self.episode['reward'].append(reward)
-            # self.episode['reached_goal'].append(self.reached_goal)
-
             t1 = time.time()
-
-            # if IS_TESTING:
-            #     try:
-            #         planning_times = pickle.load(open(planning_time_pickle, "rb"))
-            #         planning_times.append(('stanford_client', t1-t0))
-            #         planning_times.append(('stanford_client_reached_goal', self.reached_goal))
-            #         planning_times.append(('stanford_client_done', self.done))
-            #         pickle.dump(planning_times, open(planning_time_pickle, "wb"))
-            #     except Exception:
-            #         planning_times = [('stanford_client', t1-t0), 
-            #                             ('stanford_client_reached_goal', self.reached_goal),
-            #                             ('stanford_client_done', self.done)]
-            #         pickle.dump(planning_times, open(planning_time_pickle, "wb"))
 
             return obs, reward, self.done, info
 
@@ -305,34 +293,6 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             next_state = curr_state + vector
     
         cond_hit = self.detect_collision(next_state)
-
-        '''
-        # Previous value of reached_goal 
-        temp_reached_goal = self.reached_goal
-
-        # If already reached goal, don't move
-        if not temp_reached_goal:
-            if self.in_goal(next_state):
-                self.state = next_state
-                self.orientation = new_theta
-                self.reached_goal = True
-                #self.done = True
-            elif cond_hit == False:  # If collided, don't move. Else move.
-                self.state = next_state
-                self.orientation = new_theta
-
-        # If we just reached the goal, collect reward
-        # But if we already reached the goal previously, get reward 0
-        if not temp_reached_goal and self.reached_goal:
-            reward = sep.epi_reward 
-        else:
-            reward = 0
-        
-        # If already reached goal, don't reason about trap rewards
-        if not temp_reached_goal:
-            cond_false = self.in_trap(next_state)
-            reward -= sep.epi_reward * cond_false
-        '''
         
         self.done = self._step >= episode_length - 1
 
@@ -362,10 +322,15 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
         if IS_TESTING:
             try:
+                tpick0 = time.time()
+                planning_times = pickle.load(open(planning_time_pickle, "rb"))
+                pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+                tpick1 = time.time()
                 planning_times = pickle.load(open(planning_time_pickle, "rb"))
                 planning_times.append(('stanford_client', t1-t0))
-                planning_times.append(('stanford_client_reached_goal', self.reached_goal))
+                planning_times.append(('stanford_client_reached_goal', self.reached_goal, tpick1-tpick0))
                 planning_times.append(('stanford_client_done', self.done))
+                # planning_times.append(('pickle', tpick1-tpick0))
                 pickle.dump(planning_times, open(planning_time_pickle, "wb"))
             except Exception:
                 planning_times = [('stanford_client', t1-t0), 

@@ -26,7 +26,7 @@ from planet.humanav_examples.examples import *
 from planet.networks.conv_ha import encoder as enc
 
 IS_TESTING = True
-planning_time_pickle = "planning_times.p"
+planning_time_pickle = "planning_times2.p"
 
 
 class BatchEnv(object):
@@ -119,8 +119,13 @@ class BatchEnv(object):
       t0 = time.time()
       if IS_TESTING:
         try:
+          tpick0 = time.time()
           planning_times = pickle.load(open(planning_time_pickle, "rb"))
-          planning_times.append(('batch_env', t0))
+          pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+          tpick1 = time.time()
+          planning_times = pickle.load(open(planning_time_pickle, "rb"))
+          planning_times.append(('batch_env', t0, tpick1-tpick0))
+          # planning_times.append(('pickle', tpick1-tpick0))
           pickle.dump(planning_times, open(planning_time_pickle, "wb"))
         except Exception:
           planning_times = [('batch_env', t0)]
@@ -137,8 +142,13 @@ class BatchEnv(object):
         tenc1 = time.time()
         print("ENCODER", tenc1-tenc0)
         try:
+            tpick0 = time.time()
             planning_times = pickle.load(open(planning_time_pickle, "rb"))
-            planning_times.append(('encoder', tenc1-tenc0))
+            pickle.dump(planning_times, open(planning_time_pickle, "wb"))
+            tpick1 = time.time()
+            planning_times = pickle.load(open(planning_time_pickle, "rb"))
+            planning_times.append(('encoder', tenc1-tenc0, tpick1-tpick0))
+            # planning_times.append(('pickle', tpick1-tpick0))
             pickle.dump(planning_times, open(planning_time_pickle, "wb"))
         except Exception:
             planning_times = [('encoder', tenc1-tenc0)]
