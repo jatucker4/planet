@@ -6,7 +6,7 @@ WARNING: This code assumes the action repeat is 2!
 '''
 MAX_STEPS = 200
 
-planning_times = pickle.load(open("planning_times2.p", "rb"))
+planning_times = pickle.load(open("planning_times.p", "rb"))
 # print(planning_times)
 
 planning_times_per_episode = []
@@ -38,11 +38,11 @@ while i < len(planning_times):
     stanford_client_reached_goal = False
     stanford_client_done = False
     if len(planning_times[i]) == 3 and len(planning_times[i + 1]) == 3:
-        if planning_times[i][2] < 0.4: # TODO (sdeglurkar): Hack!
-            pickle = planning_times[i][2] 
-        if planning_times[i + 1][2] < 0.4:  # TODO (sdeglurkar): Hack!
-            pickle += planning_times[i + 1][2]
-        print(pickle)
+        # if planning_times[i][2] < 0.4: # TODO (sdeglurkar): Hack!
+        pickle = planning_times[i][2] 
+        # if planning_times[i + 1][2] < 0.4:  # TODO (sdeglurkar): Hack!
+        pickle += planning_times[i + 1][2]
+        # print(pickle)
     else:
         pickle = 0
     for k in range(i + 2, j):
@@ -53,39 +53,33 @@ while i < len(planning_times):
             done_counter += 1
         elif planning_times[k][0] == "stanford_client_reached_goal":
             stanford_client_reached_goal += planning_times[k][1]
-            if len(planning_times[k]) == 3 and planning_times[k][2] < 0.4:  # TODO (sdeglurkar): Hack!
+            if len(planning_times[k]) == 3: # and planning_times[k][2] < 0.4:  # TODO (sdeglurkar): Hack!
                 pickle += planning_times[k][2]
-                print(planning_times[k][2])
+                # print(planning_times[k][2])
         elif planning_times[k][0] == "stanford_client_done":
             stanford_client_done += planning_times[k][1]
         elif planning_times[k][0] == "reset_stanford_client":
             stanford_client += planning_times[k][1]
             done_counter += 1
-            if len(planning_times[k]) == 3 and planning_times[k][2] < 0.4:  # TODO (sdeglurkar): Hack!
+            if len(planning_times[k]) == 3: # and planning_times[k][2] < 0.4:  # TODO (sdeglurkar): Hack!
                 pickle += planning_times[k][2]
-                print(planning_times[k][2])
+                # print(planning_times[k][2])
         # elif planning_times[k][0] == "pickle":
         #     pickle += planning_times[k][1]
             # print(planning_times[k])
     
     to_subtract = 2*encoder  # Time spent running the encoder, once in batch_env and once for real
-    print("ENCODER", encoder)
     to_subtract += stanford_client  # Time spent stepping in environment
-    print("STANFORD CLIENT", stanford_client)
     to_subtract += 2*pickle # Time spent pickling, once for timing and once for real
-    print("PICKLE", pickle)
     # TODO (sdeglurkar): how to handle end of the data
     if j < len(planning_times):
         batch_env = planning_times[j][1]
         if batch_env != prev_time:
             step_time = batch_env - prev_time
-            print("STEP TIME BEFORE", step_time)
             step_time -= to_subtract
-            print("STEP TIME", step_time)
-            if step_time < 0:
-                print("\n\n\n\n\n\n\n")
-            if step_time > 0 and step_time < 1.0: # TODO (sdeglurkar): Hack!
-                episode_time += step_time 
+            # print("STEP TIME", step_time)
+            # if step_time > 0 and step_time < 1.0: # TODO (sdeglurkar): Hack!
+            episode_time += step_time 
     
     num_steps += 1
 
