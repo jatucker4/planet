@@ -71,9 +71,10 @@ with open(planning_time_file, 'r') as f:
                 num_steps_thrown_out += num_steps_in_env
 
             if stanford_client_reached_goal: # End of the episode
-                episode_time /= (num_steps_counter - num_steps_thrown_out)
-                planning_times_per_episode.append(episode_time)
-                print("Average planning time for the episode:", episode_time, "NUM STEPS", num_steps_counter) 
+                if num_steps_counter != num_steps_thrown_out:
+                    episode_time /= (num_steps_counter - num_steps_thrown_out)
+                    planning_times_per_episode.append(episode_time)
+                    print("Average planning time for the episode:", episode_time, "NUM STEPS", num_steps_counter) 
                 episode_time = 0  # Reset the episode time and num step counts
                 num_steps_counter = 0 
                 num_steps_thrown_out = 0
