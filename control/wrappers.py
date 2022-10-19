@@ -746,15 +746,15 @@ class CollectGymDataset(object):
     folder = os.path.basename(self._outdir)
     name = os.path.splitext(os.path.basename(filename))[0]
     print('Recorded episode {} to {}.'.format(name, folder))
-    test_traps = None
-    inner_env = self._env._env._env
-    if inner_env.test_trap:
-      test_traps = [inner_env.test_trap_x[0], 
-                    inner_env.test_trap_y[0], 
-                    inner_env.test_trap_x[1], 
-                    inner_env.test_trap_y[1]]
-    stanford_viz.plot_maze(episode, folder, name, test_traps)
-    self._env._env._env.visualize_learning(folder)
+    # test_traps = None
+    # inner_env = self._env._env._env
+    # if inner_env.test_trap:
+    #   test_traps = [inner_env.test_trap_x[0], 
+    #                 inner_env.test_trap_y[0], 
+    #                 inner_env.test_trap_x[1], 
+    #                 inner_env.test_trap_y[1]]
+    # stanford_viz.plot_maze(episode, folder, name, test_traps)
+    self._env._env._env.visualize_learning(folder, name)
 
 
 class ConvertTo32Bit(object):

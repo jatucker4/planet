@@ -20,7 +20,7 @@ from planet.plotting import stanford_viz
 
 IS_TESTING = True
 planning_time_pickle = "planning_times.p"
-planning_time_file = "planning_times.txt"
+planning_time_file = "planning_times_testtrap.txt"
 
 
 context = zmq.Context()
@@ -86,7 +86,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         self.target_y = [0, 0.25]
 
         # During test time - have an additional trap region (optional)
-        self.test_trap = False
+        self.test_trap = True
         self.test_trap_is_random = True
         self.test_trap_x = [[3, 3.5], [5, 5.5]] #[[1.5, 2], [6.5, 7]] #[3.5, 5]
         self.test_trap_y = [[0.5, 1], [0.5, 1]] #[0.5, 1] #[0.75, 1.25]
@@ -113,7 +113,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         self.map_origin = [0, 0]
 
         # Logging
-        self.episode = {'reward': [], 'reached_goal': []}
+        self.episode = {'state': [], 'reward': [], 'reached_goal': [], 'test_trap': []}
 
         # For making training batches
         self.training_data_path = sep.training_data_path
@@ -205,6 +205,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         reward = 0
         self.episode['reward'].append(reward)
         self.episode['reached_goal'].append(self.reached_goal)
+        self.episode['state'].append(self.state)
 
         # Randomizing the test traps: 
         # Each trap is size 0.5 by 0.5
@@ -224,6 +225,11 @@ class StanfordEnvironmentClient(AbstractEnvironment):
             self.test_trap_y = [[trap1_y, trap1_y+trap_size], [trap2_y, trap2_y+trap_size]]
 
             print(self.test_trap_x, self.test_trap_y, "\n\n\n")
+
+            self.episode['test_trap'].append([self.test_trap_x[0], 
+                                            self.test_trap_y[0], 
+                                            self.test_trap_x[1], 
+                                            self.test_trap_y[1]])
 
         if random_obs:
             obs = self.observation_space.sample()
@@ -320,6 +326,12 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         # Logging
         self.episode['reward'].append(reward)
         self.episode['reached_goal'].append(self.reached_goal)
+        self.episode['state'].append(self.state)
+        if self.test_trap:
+            self.episode['test_trap'].append([self.test_trap_x[0], 
+                                            self.test_trap_y[0], 
+                                            self.test_trap_x[1], 
+                                            self.test_trap_y[1]])
 
 
         info = {}
@@ -587,10 +599,15 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
             return rmean, gmean, bmean, rstd, gstd, bstd
     
-    def visualize_learning(self, folder):
+    def visualize_learning(self, folder, name):
         self.episode['reward'] = np.array(self.episode['reward'])
         self.episode['reached_goal'] = np.array(self.episode['reached_goal'])
-        stanford_viz.visualize_learning(self.episode, folder)
-        self.episode = {'reward': [], 'reached_goal': []}
+        self.episode['state'] = np.array(self.episode['state'])
+        if self.test_trap:
+            test_traps = self.episode['test_trap']
+        else:
+            test_traps = None
+        stanford_viz.visualize_learning(self.episode, folder, name, test_traps)
+        self.episode = {'state': [], 'reward': [], 'reached_goal': [], 'test_trap': []}
 
     

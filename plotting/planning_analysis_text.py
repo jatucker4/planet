@@ -9,7 +9,7 @@ STEP_TIME_THRES = 2.0
 ENCODER_THRES = 0.2
 NUM_DESIRED_EPISODES = 500
 
-planning_time_file = "planning_times.txt"  
+planning_time_file = "planning_times_testtrap.txt"  
 
 planning_times_per_episode = []
 

@@ -12,9 +12,9 @@ import pickle
 sep = Stanford_Environment_Params()
 env = StanfordEnvironmentClient()
 
-BASE_FOLDER = '092422-1-testing/00001/'
+BASE_FOLDER = '092422-1-testing-testtrap/00001/'
 
-def plot_maze(episode, figure_name_folder, figure_name_name, test_traps=None):
+def plot_maze(episode_states, figure_name_folder, figure_name_name, test_traps=None):
     #print("\n\nMADE IT", episode, "\n\n")
 
     xlim = env.xrange
@@ -29,7 +29,7 @@ def plot_maze(episode, figure_name_folder, figure_name_name, test_traps=None):
             trap2_x[1]-trap2_x[0], env.trap_y[1]-env.trap_y[0]]
     dark = [env.xrange[0], env.yrange[0], env.xrange[1]-env.xrange[0], env.dark_line-env.yrange[0]]
 
-    states = episode['state']
+    states = episode_states
 
     plt.figure()
     ax = plt.axes()
@@ -107,12 +107,13 @@ def find_steps_taken(episode):
     return step_goal_reached, steps_taken
 
 
-def dump_pickle(episode, figure_name_folder):
+def dump_pickle(episode, figure_name_folder, name, test_traps):
     step_goal_reached, steps_taken = find_steps_taken(episode)
 
     if len(step_goal_reached) == 0: 
         # Agent never reached the goal -- this whole segment is 1 episode
         rewards = [np.sum(episode['reward'])]
+        plot_maze(episode['state'], figure_name_folder, name, episode['test_trap'][0])
     else:
         # There could be multiple episodes within this segment
         rewards = []
@@ -121,6 +122,7 @@ def dump_pickle(episode, figure_name_folder):
             # Take the sum of the rewards within this episode
             reward = np.sum(episode['reward'][start : step + 1])
             rewards.append(reward)
+            plot_maze(episode['state'][start : step + 1], figure_name_folder, name + str(start), episode['test_trap'][start])
             start = step + 1
 
     try:
@@ -137,8 +139,8 @@ def dump_pickle(episode, figure_name_folder):
     episode_dict['step_goal_reached'].append(step_goal_reached)
     pickle.dump(episode_dict, open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "wb"))
 
-def visualize_learning(episode, figure_name_folder):
-    dump_pickle(episode, figure_name_folder)
+def visualize_learning(episode, figure_name_folder, name, test_traps):
+    dump_pickle(episode, figure_name_folder, name, test_traps)
 
     episode_dict = pickle.load(open(BASE_FOLDER + figure_name_folder + "/" + "episode_info.p", "rb"))
     
