@@ -12,7 +12,7 @@ import pickle
 sep = Stanford_Environment_Params()
 env = StanfordEnvironmentClient()
 
-BASE_FOLDER = '092422-1-testing-testtrap/00001/'
+BASE_FOLDER = '092422-1-testing-occ/00001/'
 
 def plot_maze(episode_states, figure_name_folder, figure_name_name, test_traps=None):
     #print("\n\nMADE IT", episode, "\n\n")
@@ -113,7 +113,10 @@ def dump_pickle(episode, figure_name_folder, name, test_traps):
     if len(step_goal_reached) == 0: 
         # Agent never reached the goal -- this whole segment is 1 episode
         rewards = [np.sum(episode['reward'])]
-        plot_maze(episode['state'], figure_name_folder, name, episode['test_trap'][0])
+        if test_traps is not None:
+            plot_maze(episode['state'], figure_name_folder, name, episode['test_trap'][0])
+        else:
+            plot_maze(episode['state'], figure_name_folder, name)
     else:
         # There could be multiple episodes within this segment
         rewards = []
@@ -122,7 +125,10 @@ def dump_pickle(episode, figure_name_folder, name, test_traps):
             # Take the sum of the rewards within this episode
             reward = np.sum(episode['reward'][start : step + 1])
             rewards.append(reward)
-            plot_maze(episode['state'][start : step + 1], figure_name_folder, name + str(start), episode['test_trap'][start])
+            if test_traps is not None:
+                plot_maze(episode['state'][start : step + 1], figure_name_folder, name + str(start), episode['test_trap'][start])
+            else:
+                plot_maze(episode['state'][start : step + 1], figure_name_folder, name + str(start))
             start = step + 1
 
     try:

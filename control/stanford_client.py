@@ -20,7 +20,7 @@ from planet.plotting import stanford_viz
 
 IS_TESTING = True
 planning_time_pickle = "planning_times.p"
-planning_time_file = "planning_times_testtrap.txt"
+planning_time_file = "planning_times_occlusion.txt"
 
 
 context = zmq.Context()
@@ -86,7 +86,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
         self.target_y = [0, 0.25]
 
         # During test time - have an additional trap region (optional)
-        self.test_trap = True
+        self.test_trap = False
         self.test_trap_is_random = True
         self.test_trap_x = [[3, 3.5], [5, 5.5]] #[[1.5, 2], [6.5, 7]] #[3.5, 5]
         self.test_trap_y = [[0.5, 1], [0.5, 1]] #[0.5, 1] #[0.75, 1.25]
@@ -430,7 +430,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
         return obs
 
-    def get_observation(self, state=None, visualize=False, normalization_data=None, occlusion=False):
+    def get_observation(self, state=None, visualize=False, normalization_data=None, occlusion=True):
         if state == None:
             state_temp = self.state
             #print("SELF.STATE", self.state)

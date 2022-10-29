@@ -9,7 +9,7 @@ STEP_TIME_THRES = 2.0
 ENCODER_THRES = 0.2
 NUM_DESIRED_EPISODES = 500
 
-planning_time_file = "planning_times_testtrap.txt"  
+planning_time_file = "planning_times_occlusion.txt"  
 
 planning_times_per_episode = []
 
@@ -80,9 +80,9 @@ with open(planning_time_file, 'r') as f:
                 num_steps_thrown_out = 0
             
             if done_counter >= MAX_STEPS - 1: # Done
-                if num_steps_counter >= MAX_STEPS - 1: # A full episode
+                if num_steps_counter >= MAX_STEPS - 1: # A full episode, not successful
                     episode_time /= (num_steps_counter - num_steps_thrown_out)  
-                    planning_times_per_episode.append(episode_time)
+                    # planning_times_per_episode.append(episode_time)
                     print("Average planning time for the episode DONE:", episode_time, "NUM STEPS", num_steps_counter)
                 episode_time = 0  # Reset the episode time and num step counts
                 num_steps_counter = 0 
