@@ -12,6 +12,7 @@ NUM_DESIRED_EPISODES = 500
 planning_time_file = "planning_times_occlusion.txt"  
 
 planning_times_per_episode = []
+num_desired_episodes_counter = 0
 
 with open(planning_time_file, 'r') as f:
 # Scroll ahead in the planning_times list to when training begins -- that's when
@@ -73,8 +74,10 @@ with open(planning_time_file, 'r') as f:
             if stanford_client_reached_goal: # End of the episode
                 if num_steps_counter != num_steps_thrown_out:
                     episode_time /= (num_steps_counter - num_steps_thrown_out)
-                    planning_times_per_episode.append(episode_time)
-                    print("Average planning time for the episode:", episode_time, "NUM STEPS", num_steps_counter) 
+                    if num_desired_episodes_counter < NUM_DESIRED_EPISODES:
+                        planning_times_per_episode.append(episode_time)
+                        num_desired_episodes_counter += 1
+                        print("Average planning time for the episode:", episode_time, "NUM STEPS", num_steps_counter) 
                 episode_time = 0  # Reset the episode time and num step counts
                 num_steps_counter = 0 
                 num_steps_thrown_out = 0
@@ -82,8 +85,10 @@ with open(planning_time_file, 'r') as f:
             if done_counter >= MAX_STEPS - 1: # Done
                 if num_steps_counter >= MAX_STEPS - 1: # A full episode, not successful
                     episode_time /= (num_steps_counter - num_steps_thrown_out)  
-                    # planning_times_per_episode.append(episode_time)
-                    print("Average planning time for the episode DONE:", episode_time, "NUM STEPS", num_steps_counter)
+                    if num_desired_episodes_counter < NUM_DESIRED_EPISODES:
+                        # planning_times_per_episode.append(episode_time)
+                        num_desired_episodes_counter += 1
+                        print("Average planning time for the episode DONE:", episode_time, "NUM STEPS", num_steps_counter)
                 episode_time = 0  # Reset the episode time and num step counts
                 num_steps_counter = 0 
                 done_counter = 0 
@@ -99,6 +104,4 @@ with open(planning_time_file, 'r') as f:
 
         line = f.readline()
 
-        
-planning_times_per_episode = np.array(planning_times_per_episode[:NUM_DESIRED_EPISODES])
 print("\nAverage planning time over all episodes: ", np.mean(planning_times_per_episode))        
