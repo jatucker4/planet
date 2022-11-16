@@ -20,7 +20,7 @@ from planet.plotting import stanford_viz
 
 IS_TESTING = True
 planning_time_pickle = "planning_times.p"
-planning_time_file = "planning_times_occlusion.txt"
+planning_time_file = "planning_times.txt"
 
 
 context = zmq.Context()
@@ -50,7 +50,7 @@ class Stanford_Environment_Params():
         self.step_range = 1 #0.05
         self.max_steps = 200  
         self.noise_amount = 0.4 #1.0 #0.4 #0.15
-        self.occlusion_amount = 15
+        self.occlusion_amount = 30
         self.salt_vs_pepper = 0.5
         self.fig_format = '.png'
         self.img = 'data/img/'
@@ -430,7 +430,7 @@ class StanfordEnvironmentClient(AbstractEnvironment):
 
         return obs
 
-    def get_observation(self, state=None, visualize=False, normalization_data=None, occlusion=True):
+    def get_observation(self, state=None, visualize=False, normalization_data=None, occlusion=False):
         if state == None:
             state_temp = self.state
             #print("SELF.STATE", self.state)

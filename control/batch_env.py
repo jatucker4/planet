@@ -27,7 +27,7 @@ from planet.networks.conv_ha import encoder as enc
 
 IS_TESTING = True
 planning_time_pickle = "planning_times.p"
-planning_time_file = "planning_times_occlusion.txt"
+planning_time_file = "planning_times.txt"
 
 
 class BatchEnv(object):

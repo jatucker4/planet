@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 
-BASE_FOLDER = '092422-1-testing-occ/00001/test_episodes/' 
+BASE_FOLDER = '092422-1-testing/00001/test_episodes/' 
 MAX_STEPS = 200
 NUM_DESIRED_EPISODES = 500
 
