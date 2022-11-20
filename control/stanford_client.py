@@ -20,7 +20,7 @@ from planet.plotting import stanford_viz
 
 IS_TESTING = True
 planning_time_pickle = "planning_times.p"
-planning_time_file = "planning_times.txt"
+planning_time_file = "planning_times_viz_occ.txt"
 
 
 context = zmq.Context()

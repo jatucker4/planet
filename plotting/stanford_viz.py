@@ -12,7 +12,7 @@ import pickle
 sep = Stanford_Environment_Params()
 env = StanfordEnvironmentClient()
 
-BASE_FOLDER = '092422-1-testing/00001/'
+BASE_FOLDER = '092422-1-testing-viz-occ/00001/'
 
 def plot_maze(episode_states, figure_name_folder, figure_name_name, test_traps=None):
     #print("\n\nMADE IT", episode, "\n\n")
@@ -81,7 +81,8 @@ def plot_maze(episode_states, figure_name_folder, figure_name_name, test_traps=N
             plt.plot(x[i], y[i], color=viridis(colorvec[i]), marker='o')
 
     ax.set_aspect('equal')
-    plt.savefig(BASE_FOLDER + figure_name_folder + "/" + figure_name_name)
+    plt.savefig(BASE_FOLDER + figure_name_folder + "/" + figure_name_name, bbox_inches='tight', dpi=1000)
+    # plt.savefig(BASE_FOLDER + figure_name_folder + "/" + figure_name_name, bbox_inches='tight')
     plt.close()
 
 
